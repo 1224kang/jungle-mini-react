@@ -1,0 +1,33 @@
+# 의존성 (Docker 볼륨에 설치됨)
+node_modules/
+
+# 빌드 결과물
+dist/
+
+# 테스트 커버리지 / 캐시
+coverage/
+.vite/
+.vitest/
+
+# 로그
+*.log
+npm-debug.log*
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 에디터 설정
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+
+# 개인 에이전트 설정
+AGENTS.md
