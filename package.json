@@ -1,0 +1,31 @@
+{
+  "name": "jungle-mini-react",
+  "version": "0.1.0",
+  "description": "jungle 13기 미니 리액트 개발 레포지토리입니다.",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest",
+    "dev": "vite --host 0.0.0.0",
+    "test:run": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1224kang/jungle-mini-react.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/1224kang/jungle-mini-react/issues"
+  },
+  "homepage": "https://github.com/1224kang/jungle-mini-react#readme",
+  "private": true,
+  "devDependencies": {
+    "jsdom": "^31.0.0",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

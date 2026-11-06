@@ -1,0 +1,18 @@
+# 기본: 텍스트 파일은 자동 감지하고, 저장소에는 LF로 저장한다.
+* text=auto eol=lf
+
+# 셸 스크립트는 반드시 LF (CRLF면 컨테이너에서 실행 오류)
+*.sh text eol=lf
+
+# 바이너리 파일 (줄바꿈 변환·diff 하지 않음)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+
+# lockfile은 diff를 접어서 PR 리뷰를 깔끔하게
+package-lock.json -diff linguist-generated=true
