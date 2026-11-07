@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini React · Phase 1</title>
+<style>
+:root {
+  --bg: #fafaf7;
+  --fg: #1d1d1f;
+  --muted: #6b6b6b;
+  --rule: #dcd9cf;
+  --accent: #2b5fd9;
+  --tile: #ffffff;
+  --code: #f2f0e9;
+  --flash: #ffe58a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616;
+    --fg: #ecebe6;
+    --muted: #9a9890;
+    --rule: #33322e;
+    --accent: #7ea6ff;
+    --tile: #1d1c1a;
+    --code: #222120;
+    --flash: #7a6a1f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Noto Sans KR", system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { font-size: 1.05rem; margin: 0 0 4px; }
+h3 { font-size: 0.95rem; margin: 16px 0 6px; color: var(--muted); }
+
+.sub { color: var(--muted); margin: 0 0 24px; }
+.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 10px; }
+
+.areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--tile);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.areas .panel { margin-bottom: 0; }
+
+.box {
+  min-height: 160px;
+  border: 1px dashed var(--muted);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+#test-pane { outline: none; }
+#test-pane:focus { border-color: var(--accent); border-style: solid; }
+
+textarea {
+  width: 100%;
+  min-height: 200px;
+  font: 0.88rem ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--fg);
+  background: var(--code);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.quick, .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick { margin-bottom: 10px; }
+.controls { margin: 16px 0 8px; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.4; cursor: default; }
+button.attention { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+.history { display: inline-flex; gap: 6px; margin-left: 8px; }
+.chip {
+  padding: 2px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.chip.on { border-color: var(--accent); color: var(--fg); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.log { color: var(--muted); font-size: 0.92rem; min-height: 1.5em; margin: 6px 0; }
+
+/* 실제 영역에서 방금 바뀐 부분 */
+/* (강조는 app.js 의 el.animate 로 처리. class 를 바꾸지 않아 DOM 과 VNode 가 어긋나지 않는다) */
+
+/* 예시 편집으로 바꾸는 속성 */
+.highlight { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.patches { list-style: none; margin: 8px 0 0; padding: 0; font-size: 0.9rem; }
+.patches li { padding: 4px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
+.op {
+  display: inline-block;
+  min-width: 74px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font: 0.78rem ui-monospace, Consolas, monospace;
+  text-align: center;
+  background: var(--code);
+}
+.op-text { color: #1f8a4c; }
+.op-props { color: #b7791f; }
+.op-replace { color: #c2412d; }
+.op-remove { color: #c2412d; }
+.op-create { color: #2b5fd9; }
+.op-move { color: #8a4fd9; }
+
+@media (max-width: 720px) {
+  .areas { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini React · Phase 1</h1>
+  <p class="sub">실제 DOM → Virtual DOM → Diff → Patch → State History</p>
+
+  <section class="areas">
+    <div class="panel">
+      <h2>실제 영역</h2>
+      <p class="hint">아래 HTML 이 샘플입니다. 페이지가 로드되면 이 DOM 을 Virtual DOM 으로 변환합니다.</p>
+      <div id="actual" class="box">
+        <article class="card" id="sample">
+          <h2>장보기</h2>
+          <p>오늘 살 것: <b>3가지</b></p>
+          <ul class="list">
+            <li key="a">사과</li>
+            <li key="b">바나나</li>
+            <li key="c">포도</li>
+          </ul>
+          <a href="https://example.com">가게 링크</a>
+          <button type="button">구매</button>
+        </article>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>테스트 영역</h2>
+      <p class="hint">Virtual DOM 으로 렌더링된 화면입니다. 직접 고치거나, 아래 HTML 코드를 고치세요.</p>
+      <div class="quick" role="group" aria-label="예시 편집">
+        <button type="button" data-edit="text">텍스트 바꾸기</button>
+        <button type="button" data-edit="attr">속성 바꾸기</button>
+        <button type="button" data-edit="tag">태그 바꾸기</button>
+        <button type="button" data-edit="add">항목 추가</button>
+        <button type="button" data-edit="remove">항목 삭제</button>
+        <button type="button" data-edit="reorder">순서 뒤집기</button>
+      </div>
+      <div id="test-pane" class="box" contenteditable="true" spellcheck="false"></div>
+      <h3>HTML 코드</h3>
+      <textarea id="test-code" spellcheck="false" aria-label="테스트 영역 HTML 코드"></textarea>
+      <p id="dirty" class="log"></p>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="btn-back" type="button">뒤로가기</button>
+    <button id="btn-patch" type="button">Patch</button>
+    <button id="btn-forward" type="button">앞으로가기</button>
+    <span id="history-view" class="history" aria-label="State History"></span>
+  </div>
+  <p id="log" class="log"></p>
+
+  <section class="panel">
+    <h2>이번 패치</h2>
+    <p id="patch-summary" class="log">아직 Patch 하지 않았습니다.</p>
+    <ul id="patch-list" class="patches"></ul>
+  </section>
+</main>
+<script>
+(() => {
+  // CDH/src/lib/vdom/convert.js
+  var TEXT_NODE = 3;
+  var ELEMENT_NODE = 1;
+  var VOID_TAGS = /* @__PURE__ */ new Set([
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "source",
+    "track",
+    "wbr"
+  ]);
+  function domToVNode(node) {
+    if (node.nodeType === TEXT_NODE) return node.nodeValue;
+    const props = {};
+    for (const attr of node.attributes) props[attr.name] = attr.value;
+    const children = [];
+    for (const child of node.childNodes) {
+      if (child.nodeType === TEXT_NODE) {
+        if (child.nodeValue.trim() !== "") children.push(child.nodeValue);
+      } else if (child.nodeType === ELEMENT_NODE) {
+        children.push(domToVNode(child));
+      }
+    }
+    return { type: node.nodeName.toLowerCase(), props, children };
+  }
+  function stripBlankNodes(node) {
+    for (const child of [...node.childNodes]) {
+      if (child.nodeType === TEXT_NODE) {
+        if (child.nodeValue.trim() === "") child.remove();
+      } else if (child.nodeType === ELEMENT_NODE) {
+        stripBlankNodes(child);
+      } else {
+        child.remove();
+      }
+    }
+  }
+  function parseHTML(html) {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const root = [...template.content.childNodes].find((n) => n.nodeType === ELEMENT_NODE);
+    return root ? domToVNode(root) : null;
+  }
+  function openTag(v) {
+    const attrs = Object.entries(v.props).filter(([, val]) => val !== null && val !== void 0).map(([k, val]) => ` ${k}="${escapeAttr(String(val))}"`).join("");
+    return `<${v.type}${attrs}>`;
+  }
+  function vnodeToHTML(v) {
+    if (typeof v === "string") return escapeText(v);
+    if (VOID_TAGS.has(v.type)) return openTag(v);
+    return `${openTag(v)}${v.children.map(vnodeToHTML).join("")}</${v.type}>`;
+  }
+  function prettyHTML(v, depth = 0) {
+    const pad = "  ".repeat(depth);
+    const inline = typeof v === "string" || VOID_TAGS.has(v.type) || v.children.length === 0 || v.children.some((c) => typeof c === "string");
+    if (inline) return pad + vnodeToHTML(v);
+    const inner = v.children.map((c) => prettyHTML(c, depth + 1)).join("\n");
+    return `${pad}${openTag(v)}
+${inner}
+${pad}</${v.type}>`;
+  }
+  function escapeText(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function escapeAttr(s) {
+    return escapeText(s).replace(/"/g, "&quot;");
+  }
+
+  // CDH/src/lib/vdom/vnode.js
+  function isVNode(value) {
+    return typeof value === "object" && value !== null && typeof value.type === "string";
+  }
+  function keyOf(value) {
+    return isVNode(value) ? value.props.key : void 0;
+  }
+  function countNodes(v) {
+    if (typeof v === "string") return 1;
+    return 1 + v.children.reduce((sum, c) => sum + countNodes(c), 0);
+  }
+
+  // CDH/src/lib/dom/create.js
+  function createDOM(v) {
+    if (typeof v === "string") return document.createTextNode(v);
+    const el = document.createElement(v.type);
+    for (const [k, val] of Object.entries(v.props)) {
+      if (val === null || val === void 0) continue;
+      el.setAttribute(k, String(val));
+    }
+    for (const child of v.children) el.appendChild(createDOM(child));
+    return el;
+  }
+
+  // CDH/src/lib/reconcile/diff.js
+  function typeOf(v) {
+    return typeof v === "string" ? "#text" : v.type;
+  }
+  function sameType(a, b) {
+    return typeOf(a) === typeOf(b);
+  }
+  function diff(oldRoot, newRoot) {
+    if (!sameType(oldRoot, newRoot)) {
+      return [{ op: "REPLACE", path: [], value: newRoot }];
+    }
+    return diffNode(oldRoot, newRoot, []);
+  }
+  function diffNode(oldN, newN, path) {
+    if (typeof oldN === "string") {
+      return oldN === newN ? [] : [{ op: "TEXT", path, value: newN }];
+    }
+    const patches = [];
+    const props = diffProps(oldN.props, newN.props);
+    if (props) patches.push({ op: "PROPS", path, ...props });
+    patches.push(...diffChildren(oldN.children, newN.children, path));
+    return patches;
+  }
+  function diffProps(oldProps, newProps) {
+    const set = {};
+    const remove = [];
+    for (const k of Object.keys(newProps)) {
+      if (oldProps[k] !== newProps[k]) set[k] = newProps[k];
+    }
+    for (const k of Object.keys(oldProps)) {
+      if (!(k in newProps)) remove.push(k);
+    }
+    return Object.keys(set).length || remove.length ? { set, remove } : null;
+  }
+  function hasKey(v) {
+    return isVNode(v) && v.props.key !== void 0;
+  }
+  function diffChildren(oldKids, newKids, path) {
+    const keyed = oldKids.some(hasKey) || newKids.some(hasKey);
+    const matchOf = newKids.map(() => -1);
+    const usedOld = oldKids.map(() => false);
+    if (keyed) {
+      const oldByKey = /* @__PURE__ */ new Map();
+      oldKids.forEach((c, i) => {
+        if (hasKey(c)) oldByKey.set(keyOf(c), i);
+      });
+      newKids.forEach((c, j) => {
+        if (!hasKey(c)) return;
+        const i = oldByKey.get(keyOf(c));
+        if (i !== void 0 && !usedOld[i]) {
+          matchOf[j] = i;
+          usedOld[i] = true;
+        }
+      });
+    } else {
+      newKids.forEach((_, j) => {
+        if (j < oldKids.length) {
+          matchOf[j] = j;
+          usedOld[j] = true;
+        }
+      });
+    }
+    const patches = [];
+    oldKids.forEach((_, i) => {
+      if (!usedOld[i]) patches.push({ op: "REMOVE", path: [...path, i] });
+    });
+    newKids.forEach((c, j) => {
+      const i = matchOf[j];
+      if (i === -1) return;
+      const old = oldKids[i];
+      if (sameType(old, c)) patches.push(...diffNode(old, c, [...path, i]));
+      else patches.push({ op: "REPLACE", path: [...path, i], value: c });
+    });
+    const moved = newKids.map(() => false);
+    if (keyed) {
+      let lastPlaced = 0;
+      newKids.forEach((_, j) => {
+        const i = matchOf[j];
+        if (i === -1) return;
+        if (i < lastPlaced) moved[j] = true;
+        else lastPlaced = i;
+      });
+    }
+    const plan = newKids.map(
+      (c, j) => matchOf[j] === -1 ? { create: c } : { from: matchOf[j], moved: moved[j] }
+    );
+    const structural = usedOld.some((u) => !u) || plan.some((p) => "create" in p || p.moved);
+    if (structural) patches.push({ op: "CHILDREN", path, plan });
+    return patches;
+  }
+
+  // CDH/src/lib/reconcile/describe.js
+  function short(s, n = 16) {
+    return s.length > n ? s.slice(0, n) + "\u2026" : s;
+  }
+  function label(v) {
+    return typeof v === "string" ? `"${short(v)}"` : `<${v.type}>`;
+  }
+  function nodeAt(root, path) {
+    let n = root;
+    for (const i of path) n = n.children[i];
+    return n;
+  }
+  function pathLabel(root, path) {
+    const names = [label(root)];
+    let n = root;
+    for (const i of path) {
+      n = n.children[i];
+      names.push(label(n));
+    }
+    return names.join(" > ");
+  }
+  function describePatches(oldRoot, patches) {
+    const lines = [];
+    for (const p of patches) {
+      const where = pathLabel(oldRoot, p.path);
+      if (p.op === "TEXT") {
+        lines.push({ op: "TEXT", text: `${where} \u2192 "${short(p.value)}"` });
+      } else if (p.op === "PROPS") {
+        const parts = [
+          ...Object.entries(p.set).map(([k, v]) => `${k}="${short(String(v))}"`),
+          ...p.remove.map((k) => `${k} \uC81C\uAC70`)
+        ];
+        lines.push({ op: "PROPS", text: `${where} : ${parts.join(", ")}` });
+      } else if (p.op === "REPLACE") {
+        lines.push({ op: "REPLACE", text: `${where} \u2192 ${label(p.value)}` });
+      } else if (p.op === "REMOVE") {
+        lines.push({ op: "REMOVE", text: where });
+      } else if (p.op === "CHILDREN") {
+        const parent = nodeAt(oldRoot, p.path);
+        p.plan.forEach((entry, j) => {
+          if ("create" in entry) {
+            lines.push({ op: "CREATE", text: `${where} [${j}] \u2190 ${label(entry.create)}` });
+          } else if (entry.moved) {
+            lines.push({
+              op: "MOVE",
+              text: `${where} : ${label(parent.children[entry.from])} ${entry.from} \u2192 ${j}`
+            });
+          }
+        });
+      }
+    }
+    return lines;
+  }
+
+  // CDH/src/lib/reconcile/patch.js
+  function nodeAt2(mount, path) {
+    let node = mount.firstChild;
+    for (const i of path) node = node.childNodes[i];
+    return node;
+  }
+  function applyPatches(mount, patches) {
+    const touched = /* @__PURE__ */ new Set();
+    if (patches.length === 0) return { touched };
+    const targets = patches.map((p) => {
+      const node = nodeAt2(mount, p.path);
+      return p.op === "CHILDREN" ? { p, node, snapshot: Array.from(node.childNodes) } : { p, node };
+    });
+    for (const { p, node } of targets) {
+      if (p.op === "TEXT") {
+        node.textContent = p.value;
+        touched.add(node);
+      }
+      if (p.op === "PROPS") {
+        for (const [k, v] of Object.entries(p.set)) node.setAttribute(k, String(v));
+        for (const k of p.remove) node.removeAttribute(k);
+        touched.add(node);
+      }
+    }
+    const replaced = /* @__PURE__ */ new Map();
+    for (const { p, node } of targets) {
+      if (p.op !== "REPLACE") continue;
+      const fresh = createDOM(p.value);
+      node.replaceWith(fresh);
+      replaced.set(node, fresh);
+      touched.add(fresh);
+    }
+    for (const { p, node } of targets) {
+      if (p.op !== "REMOVE") continue;
+      touched.add(node.parentNode);
+      node.remove();
+    }
+    for (const { p, node, snapshot } of targets) {
+      if (p.op === "CHILDREN") placeChildren(node, snapshot, p.plan, replaced, touched);
+    }
+    return { touched };
+  }
+  function placeChildren(parent, snapshot, plan, replaced, touched) {
+    const nodes = plan.map((entry) => {
+      if ("create" in entry) return createDOM(entry.create);
+      const old = snapshot[entry.from];
+      return replaced.get(old) ?? old;
+    });
+    for (let j = plan.length - 1; j >= 0; j--) {
+      const entry = plan[j];
+      if ("create" in entry || entry.moved) {
+        parent.insertBefore(nodes[j], nodes[j + 1] ?? null);
+        touched.add(nodes[j]);
+      }
+    }
+  }
+
+  // CDH/src/app/history.js
+  var StateHistory = class {
+    constructor(initial) {
+      this.items = [structuredClone(initial)];
+      this.cursor = 0;
+    }
+    // 커서 뒤의 기록은 버리고, 새 스냅샷을 끝에 붙입니다.
+    push(snapshot) {
+      this.items = this.items.slice(0, this.cursor + 1);
+      this.items.push(structuredClone(snapshot));
+      this.cursor = this.items.length - 1;
+    }
+    back() {
+      if (this.cursor > 0) this.cursor--;
+      return this.current();
+    }
+    forward() {
+      if (this.cursor < this.items.length - 1) this.cursor++;
+      return this.current();
+    }
+    current() {
+      return structuredClone(this.items[this.cursor]);
+    }
+  };
+
+  // CDH/src/app/app.js
+  var TEXT_NODE2 = 3;
+  function initApp(doc = document) {
+    const $ = (id) => doc.getElementById(id);
+    const actual = $("actual");
+    const pane = $("test-pane");
+    const code = $("test-code");
+    const btnPatch = $("btn-patch");
+    const btnBack = $("btn-back");
+    const btnForward = $("btn-forward");
+    const logEl = $("log");
+    const dirtyEl = $("dirty");
+    const historyView = $("history-view");
+    const patchSummary = $("patch-summary");
+    const patchList = $("patch-list");
+    const log = (msg) => {
+      logEl.textContent = msg;
+    };
+    let dirty = 0;
+    function showDirty() {
+      dirtyEl.textContent = dirty > 0 ? `\uBCC0\uACBD \uAC10\uC9C0: ${dirty}\uAC74 (Patch \uB85C \uC2E4\uC81C \uC601\uC5ED\uC5D0 \uBC18\uC601)` : "\uBCC0\uACBD \uC5C6\uC74C";
+      btnPatch.classList.toggle("attention", dirty > 0);
+    }
+    const Observer = doc.defaultView.MutationObserver;
+    const observer = new Observer((records) => {
+      dirty += records.length;
+      showDirty();
+    });
+    observer.observe(pane, { subtree: true, childList: true, attributes: true, characterData: true });
+    stripBlankNodes(actual);
+    const root = actual.firstElementChild;
+    if (!root) {
+      log("\uC2E4\uC81C \uC601\uC5ED\uC5D0 \uC0D8\uD50C HTML \uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      return null;
+    }
+    let current = domToVNode(root);
+    const history = new StateHistory(current);
+    function renderTest(v) {
+      pane.replaceChildren(createDOM(v));
+      code.value = prettyHTML(v);
+      observer.takeRecords();
+      dirty = 0;
+      showDirty();
+    }
+    renderTest(current);
+    renderHistory();
+    log(`\uB85C\uB4DC: \uC2E4\uC81C \uC601\uC5ED DOM \u2192 Virtual DOM \uBCC0\uD658 (\uB178\uB4DC ${countNodes(current)}\uAC1C), \uD14C\uC2A4\uD2B8 \uC601\uC5ED \uB80C\uB354\uB9C1 \uC644\uB8CC.`);
+    function readPane() {
+      const el = pane.firstElementChild;
+      return el ? domToVNode(el) : null;
+    }
+    pane.addEventListener("input", () => {
+      const v = readPane();
+      if (v) code.value = prettyHTML(v);
+    });
+    code.addEventListener("input", () => {
+      const v = parseHTML(code.value);
+      if (!v) {
+        log("HTML \uC5D0 \uB8E8\uD2B8 \uC694\uC18C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        return;
+      }
+      pane.replaceChildren(createDOM(v));
+    });
+    function commit(next) {
+      const patches = diff(current, next);
+      const lines = describePatches(current, patches);
+      const { touched } = applyPatches(actual, patches);
+      const total = countNodes(next);
+      current = next;
+      renderTest(current);
+      showPatches(lines, touched.size, total);
+      flash(touched);
+      return lines.length;
+    }
+    function showPatches(lines, touchedCount, total) {
+      patchList.replaceChildren(
+        ...lines.map((l) => {
+          const li = doc.createElement("li");
+          const tag = doc.createElement("span");
+          tag.className = `op op-${l.op.toLowerCase()}`;
+          tag.textContent = l.op;
+          li.append(tag, " ", l.text);
+          return li;
+        })
+      );
+      patchSummary.textContent = lines.length === 0 ? "\uD328\uCE58 \uC5C6\uC74C" : `\uD328\uCE58 ${lines.length}\uAC1C \xB7 \uAC74\uB4DC\uB9B0 DOM \uB178\uB4DC ${touchedCount}\uAC1C (\uC804\uCCB4 \uB2E4\uC2DC \uADF8\uB838\uB2E4\uBA74 ${total}\uAC1C)`;
+    }
+    function flash(touched) {
+      const color = doc.defaultView.getComputedStyle(doc.documentElement).getPropertyValue("--flash").trim() || "#ffe58a";
+      for (const node of touched) {
+        const el = node.nodeType === TEXT_NODE2 ? node.parentElement : node;
+        if (el && typeof el.animate === "function") {
+          el.animate([{ backgroundColor: color }, { backgroundColor: "transparent" }], 900);
+        }
+      }
+    }
+    function renderHistory() {
+      historyView.replaceChildren(
+        ...history.items.map((_, i) => {
+          const chip = doc.createElement("span");
+          chip.className = "chip" + (i === history.cursor ? " on" : "");
+          chip.textContent = `#${i + 1}`;
+          return chip;
+        })
+      );
+      btnBack.disabled = history.cursor === 0;
+      btnForward.disabled = history.cursor === history.items.length - 1;
+    }
+    btnPatch.addEventListener("click", () => {
+      const next = readPane();
+      if (!next) {
+        log("\uD14C\uC2A4\uD2B8 \uC601\uC5ED\uC5D0 \uB8E8\uD2B8 \uC694\uC18C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        return;
+      }
+      const count = commit(next);
+      if (count === 0) {
+        log("\uBCC0\uACBD \uC5C6\uC74C. \uAE30\uB85D\uC740 \uB0A8\uAE30\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
+        return;
+      }
+      history.push(next);
+      renderHistory();
+      log(`Patch: \uD328\uCE58 ${count}\uAC1C\uB97C \uC2E4\uC81C \uC601\uC5ED\uC5D0 \uBC18\uC601\uD558\uACE0 \uAE30\uB85D #${history.cursor + 1} \uB85C \uC800\uC7A5.`);
+    });
+    btnBack.addEventListener("click", () => {
+      if (history.cursor === 0) return;
+      const count = commit(history.back());
+      renderHistory();
+      log(`\uB4A4\uB85C\uAC00\uAE30: \uAE30\uB85D #${history.cursor + 1} \uB85C \uC774\uB3D9 (\uD328\uCE58 ${count}\uAC1C).`);
+    });
+    btnForward.addEventListener("click", () => {
+      if (history.cursor === history.items.length - 1) return;
+      const count = commit(history.forward());
+      renderHistory();
+      log(`\uC55E\uC73C\uB85C\uAC00\uAE30: \uAE30\uB85D #${history.cursor + 1} \uB85C \uC774\uB3D9 (\uD328\uCE58 ${count}\uAC1C).`);
+    });
+    let seq = 0;
+    function firstText(node) {
+      for (const c of node.childNodes) {
+        if (c.nodeType === TEXT_NODE2 && c.nodeValue.trim() !== "") return c;
+        if (c.nodeType === 1) {
+          const found = firstText(c);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+    const edits = {
+      // 텍스트 변경
+      text(el) {
+        const t = firstText(el.querySelector("li") ?? el);
+        if (t) t.nodeValue += " (\uC218\uC815)";
+      },
+      // 속성 변경
+      attr(el) {
+        el.classList.toggle("highlight");
+      },
+      // 태그(타입) 변경: h2 ↔ h3
+      tag(el) {
+        const h = el.querySelector("h2, h3");
+        if (!h) return;
+        const to = doc.createElement(h.tagName === "H2" ? "h3" : "h2");
+        for (const a of h.attributes) to.setAttribute(a.name, a.value);
+        to.append(...h.childNodes);
+        h.replaceWith(to);
+      },
+      // 자식 추가
+      add(el) {
+        const ul = el.querySelector("ul");
+        if (!ul) return;
+        seq += 1;
+        const li = doc.createElement("li");
+        li.setAttribute("key", `n${seq}`);
+        li.textContent = `\uC0C8 \uD56D\uBAA9 ${seq}`;
+        ul.appendChild(li);
+      },
+      // 자식 삭제
+      remove(el) {
+        el.querySelector("ul")?.lastElementChild?.remove();
+      },
+      // 순서 뒤집기 (key 가 있으면 이동으로 처리)
+      reorder(el) {
+        const ul = el.querySelector("ul");
+        if (!ul) return;
+        [...ul.children].reverse().forEach((li) => ul.appendChild(li));
+      }
+    };
+    doc.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const el = pane.firstElementChild;
+        if (!el) return;
+        edits[btn.dataset.edit]?.(el);
+        const v = readPane();
+        if (v) code.value = prettyHTML(v);
+      });
+    });
+    return {
+      getCurrent: () => current,
+      history,
+      observer
+    };
+  }
+
+  // CDH/src/app/main.js
+  initApp(document);
+  window.__miniReactBooted = true;
+})();
+
+</script>
+<script>
+  // 모듈 스크립트가 실행되지 않으면(file:// 로 열었거나 dev 서버가 꺼진 경우) 버튼이 죽어 있으므로 이유를 알려 줍니다.
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (window.__miniReactBooted) return;
+      var box = document.createElement('p');
+      box.style.cssText = 'background:#fde8e4;color:#7a1f10;padding:10px 14px;border-radius:8px;';
+      box.textContent = location.protocol === 'file:'
+        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. 컨테이너에서 npm run dev 후 http://localhost:5173/CDH/index.html 로 접속하세요.'
+        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하고, dev 서버를 재시작한 뒤 Ctrl+Shift+R 로 새로고침하세요.';
+      document.querySelector('main').prepend(box);
+    }, 500);
+  });
+</script>
+</body>
+</html>

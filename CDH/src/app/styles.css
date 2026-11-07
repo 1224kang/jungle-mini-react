@@ -1,0 +1,148 @@
+:root {
+  --bg: #fafaf7;
+  --fg: #1d1d1f;
+  --muted: #6b6b6b;
+  --rule: #dcd9cf;
+  --accent: #2b5fd9;
+  --tile: #ffffff;
+  --code: #f2f0e9;
+  --flash: #ffe58a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616;
+    --fg: #ecebe6;
+    --muted: #9a9890;
+    --rule: #33322e;
+    --accent: #7ea6ff;
+    --tile: #1d1c1a;
+    --code: #222120;
+    --flash: #7a6a1f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Noto Sans KR", system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { font-size: 1.05rem; margin: 0 0 4px; }
+h3 { font-size: 0.95rem; margin: 16px 0 6px; color: var(--muted); }
+
+.sub { color: var(--muted); margin: 0 0 24px; }
+.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 10px; }
+
+.areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--tile);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.areas .panel { margin-bottom: 0; }
+
+.box {
+  min-height: 160px;
+  border: 1px dashed var(--muted);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+#test-pane { outline: none; }
+#test-pane:focus { border-color: var(--accent); border-style: solid; }
+
+textarea {
+  width: 100%;
+  min-height: 200px;
+  font: 0.88rem ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--fg);
+  background: var(--code);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.quick, .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick { margin-bottom: 10px; }
+.controls { margin: 16px 0 8px; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.4; cursor: default; }
+button.attention { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+.history { display: inline-flex; gap: 6px; margin-left: 8px; }
+.chip {
+  padding: 2px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.chip.on { border-color: var(--accent); color: var(--fg); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.log { color: var(--muted); font-size: 0.92rem; min-height: 1.5em; margin: 6px 0; }
+
+/* 실제 영역에서 방금 바뀐 부분 */
+/* (강조는 app.js 의 el.animate 로 처리. class 를 바꾸지 않아 DOM 과 VNode 가 어긋나지 않는다) */
+
+/* 예시 편집으로 바꾸는 속성 */
+.highlight { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.patches { list-style: none; margin: 8px 0 0; padding: 0; font-size: 0.9rem; }
+.patches li { padding: 4px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
+.op {
+  display: inline-block;
+  min-width: 74px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font: 0.78rem ui-monospace, Consolas, monospace;
+  text-align: center;
+  background: var(--code);
+}
+.op-text { color: #1f8a4c; }
+.op-props { color: #b7791f; }
+.op-replace { color: #c2412d; }
+.op-remove { color: #c2412d; }
+.op-create { color: #2b5fd9; }
+.op-move { color: #8a4fd9; }
+
+@media (max-width: 720px) {
+  .areas { grid-template-columns: 1fr; }
+}
