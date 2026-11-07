@@ -18,9 +18,6 @@ React, Vue 같은 외부 UI 프레임워크 없이 **순수 JavaScript**로 Reac
 
 ```
 jungle-mini-react/
-├─ .github/
-│  ├─ ISSUE_TEMPLATE/     
-│  └─ pull_request_template.md
 ├─ src/
 │  ├─ lib/                 # Mini React 본체
 │  │  ├─ vdom/             # VNode 생성, 실제 DOM → Virtual DOM 변환
