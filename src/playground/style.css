@@ -1,0 +1,12 @@
+body { font-family: system-ui, sans-serif; margin: 1rem 2rem; }
+section { margin-bottom: 1.5rem; }
+.row { display: flex; gap: 1rem; }
+.row > * { flex: 1; min-width: 0; }
+textarea { width: 100%; font-family: monospace; box-sizing: border-box; }
+label { display: block; font-weight: 600; }
+.buttons { margin-top: .5rem; display: flex; gap: .5rem; }
+.panel { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: .5rem; min-height: 2rem; overflow: auto; margin: 0; font-size: 13px; }
+.box { border: 1px dashed #999; padding: .5rem; min-height: 2rem; }
+.error { color: #cf222e; font-weight: 600; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #d0d7de; padding: 4px 8px; text-align: left; font-family: monospace; }

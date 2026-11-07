@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini React Playground</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1>Mini React Playground</h1>
+
+    <section>
+      <label>케이스 <select id="case-select"></select></label>
+      <div class="row">
+        <label>before HTML<textarea id="before" rows="6"></textarea></label>
+        <label>after HTML<textarea id="after" rows="6"></textarea></label>
+      </div>
+      <div class="buttons">
+        <button id="btn-convert">변환</button>
+        <button id="btn-diff">diff</button>
+        <button id="btn-patch">patch 적용</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. 변환 (domToVdom)</h2>
+      <div class="row">
+        <div><h3>before</h3><pre id="out-before" class="panel"></pre></div>
+        <div><h3>after</h3><pre id="out-after" class="panel"></pre></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. diff</h2>
+      <div id="out-diff" class="panel"></div>
+    </section>
+
+    <section>
+      <h2>3. patch 적용</h2>
+      <div id="out-result" class="panel"></div>
+      <div class="row">
+        <div><h3>미리보기 (before + patch)</h3><div id="preview" class="box"></div></div>
+        <div><h3>기준 (after 렌더)</h3><div id="reference" class="box"></div></div>
+      </div>
+    </section>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
