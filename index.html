@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini React · Phase 1</title>
+    <link rel="stylesheet" href="/src/app/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>Mini React <span>Phase 1 · Virtual DOM + Diff + Patch</span></h1>
+    </header>
+
+    <nav class="toolbar">
+      <button id="btn-back" type="button">← 뒤로가기</button>
+      <button id="btn-forward" type="button">앞으로가기 →</button>
+      <span id="history-status" class="history-status"></span>
+      <button id="btn-patch" type="button" class="primary">Patch <kbd>Ctrl+Enter</kbd></button>
+    </nav>
+
+    <main class="areas">
+      <section class="area">
+        <h2 class="area-title">실제 영역 <small>변경된 부분만 갱신됩니다</small></h2>
+        <!-- 페이지 로드 시 이 샘플 HTML을 Virtual DOM으로 변환한다. -->
+        <div id="actual" class="area-body sample">
+          <section class="card">
+            <h3>오늘의 할 일</h3>
+            <p>미니 리액트 <strong>Phase 1</strong> 데모입니다.</p>
+            <ul class="todo">
+              <li class="done">Virtual DOM 변환</li>
+              <li>Diff 알고리즘</li>
+              <li>Patch</li>
+            </ul>
+            <input type="text" placeholder="입력해 보세요" />
+            <button type="button">버튼</button>
+          </section>
+        </div>
+      </section>
+
+      <section class="area">
+        <h2 class="area-title">테스트 영역 <small>HTML을 자유롭게 수정하세요</small></h2>
+        <textarea id="test-editor" class="editor" spellcheck="false" aria-label="테스트 영역 HTML 편집기"></textarea>
+        <h3 class="preview-title">미리보기</h3>
+        <div id="test-preview" class="area-body sample"></div>
+      </section>
+    </main>
+
+    <section class="log">
+      <h2 class="area-title">Patch 로그</h2>
+      <ol id="patch-log" class="log-list"></ol>
+    </section>
+
+    <script type="module" src="/src/app/main.js"></script>
+  </body>
+</html>
