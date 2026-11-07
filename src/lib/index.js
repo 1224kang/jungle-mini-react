@@ -2,5 +2,4 @@
 export { h } from './vdom/h.js';
 export { domToVdom } from './vdom/domToVdom.js';
 export { render } from './dom/render.js';
-export { diff } from './reconcile/diff.js';
-export { patch } from './reconcile/patch.js';
+// diff, patch는 docs/contracts.md 5장(Patch)이 확정된 뒤 export한다.
