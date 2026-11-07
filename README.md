@@ -18,22 +18,38 @@ React, Vue 같은 외부 UI 프레임워크 없이 **순수 JavaScript**로 Reac
 
 ```
 jungle-mini-react/
+├─ index.html              # 진입 페이지 (playground / app 링크)
+├─ vite.config.js          # vitest 환경(jsdom) 설정
+├─ docs/
+│  └─ contracts.md         # VNode / Patch 데이터 계약
+├─ fixtures/
+│  └─ cases.js             # diff/patch 검증용 before/after 케이스
 ├─ src/
 │  ├─ lib/                 # Mini React 본체
-│  │  ├─ vdom/             # VNode 생성, 실제 DOM → Virtual DOM 변환
+│  │  ├─ index.js          # 공개 인터페이스 (h, domToVdom, render, diff, patch)
+│  │  ├─ shared/           # 상수 (NODE_TYPE, PATCH_TYPE)
+│  │  ├─ vdom/             # h, domToVdom (VNode 생성/변환)
+│  │  ├─ dom/              # render (VNode → 실제 DOM)
 │  │  ├─ reconcile/        # diff(변경 계산), patch(실제 DOM 반영)
-│  │  ├─ dom/              # VNode → 실제 DOM 노드 생성
 │  │  └─ hooks/            # useState, useEffect, useMemo (Phase 2)
+│  ├─ playground/          # 변환/diff/patch 검증 페이지
 │  └─ app/                 # Mini React로 만든 데모 앱
-├─ tests/                  # 기능별 테스트
+├─ tests/                  # lib 구조를 따르는 테스트 + boundaries.test.js
 ├─ scripts/                # 검증 등 보조 스크립트
 ├─ Dockerfile
 ├─ compose.yaml
 └─ package.json
 ```
 
-- `src/lib`(라이브러리)와 `src/app`(라이브러리를 사용하는 앱)을 분리합니다.
-- `diff`와 `patch`는 각각 독립적으로 테스트할 수 있도록 파일을 나눕니다.
+### 설계 원칙
+
+1. **정보 은닉**: 외부(playground, app, 통합 테스트)는 `src/lib/index.js`에서만 import합니다.
+2. **관심사 분리**: `vdom`은 VNode 생성/변환, `dom`은 VNode→DOM, `reconcile/diff`는 변경 계산, `reconcile/patch`는 DOM 반영을 맡습니다.
+3. **낮은 결합도**: `diff.js`는 DOM API와 `dom/`을 쓰지 않는 순수 함수입니다.
+4. **의존성 방향**: playground/app → lib/index.js → vdom·dom·reconcile → shared (역방향 import 금지). `tests/boundaries.test.js`가 검사합니다.
+
+- 데이터 형식은 [docs/contracts.md](docs/contracts.md)를 따릅니다.
+- 검증 페이지: `npm run dev` 후 http://localhost:5173/src/playground/
 - 빈 폴더의 `.gitkeep`은 폴더 구조 유지용이며, 코드를 추가하면 삭제해도 됩니다.
 
 ## 🛠️ 기술 스택
@@ -99,7 +115,6 @@ docker compose run --rm --service-ports dev
 | `npm run test:run` | 테스트 1회 실행 (PR 전 확인용) |
 | `npx vitest run tests/diff.test.js` | 특정 테스트 파일만 실행 |
 
-> ⚠️ `npm run dev`는 `index.html`, DOM 테스트는 `vite.config.js`(jsdom 환경 설정)가 추가된 뒤부터 동작합니다.
 
 ### dev 서버와 테스트를 동시에 실행하기
 
