@@ -51,12 +51,26 @@ function diffProps(oldProps, newProps) {
   const set = {};
   const remove = [];
   for (const k of Object.keys(newProps)) {
-    if (oldProps[k] !== newProps[k]) set[k] = newProps[k];
+    if (!sameProp(oldProps[k], newProps[k])) set[k] = newProps[k];
   }
   for (const k of Object.keys(oldProps)) {
     if (!(k in newProps)) remove.push(k);
   }
   return Object.keys(set).length || remove.length ? { set, remove } : null;
+}
+
+// [Phase 2] 속성 값 비교. style={{...}} 처럼 렌더마다 새로 만드는 객체는 내용이 같으면 같은 값으로 봅니다.
+// 함수(이벤트 핸들러)는 렌더마다 새 클로저라 달라 보이지만, 최신 함수로 교체해야 하므로 일부러 "다름" 으로 둡니다.
+function sameProp(a, b) {
+  if (a === b) return true;
+  if (!isPlain(a) || !isPlain(b)) return false;
+  const ka = Object.keys(a);
+  const kb = Object.keys(b);
+  return ka.length === kb.length && ka.every((k) => k in b && a[k] === b[k]);
+}
+
+function isPlain(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
 function hasKey(v) {

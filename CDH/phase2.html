@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini React · Phase 2</title>
+<link rel="stylesheet" href="./src/app/styles.css">
+<link rel="stylesheet" href="./src/app2/styles.css">
+</head>
+<body>
+<main>
+  <h1>Mini React · Phase 2</h1>
+  <p class="sub">Component · State · Hooks (useState / useEffect / useMemo) → Virtual DOM → Diff → Patch</p>
+
+  <div class="layout">
+    <div class="panel">
+      <p class="hint">상태는 루트 컴포넌트(TodoApp)에만 있고, 자식은 props 만 받는 순수 함수입니다. 입력·클릭하면 바뀐 부분만 갱신됩니다 (노랗게 깜빡임).</p>
+      <div id="app"></div>
+    </div>
+
+    <aside class="panel dbg" aria-label="디버그 패널">
+      <h2>안에서 일어나는 일</h2>
+      <p class="hint">렌더 횟수 <span id="dbg-renders" class="big">0</span></p>
+      <label class="switch"><input id="batch-toggle" type="checkbox"> batching (같은 틱의 setState 를 모아 1번만 렌더)</label>
+      <p class="hint">켜고 끄고 "+1 을 3번 호출" 을 눌러 렌더 횟수를 비교해 보세요.</p>
+
+      <h3>이번 렌더</h3>
+      <p id="dbg-summary" class="log"></p>
+      <ul id="dbg-patches" class="patches"></ul>
+
+      <h3>hooks 배열 (칸 번호 = Hook 호출 순서)</h3>
+      <table>
+        <thead><tr><th>#</th><th>종류</th><th>값</th></tr></thead>
+        <tbody id="dbg-hooks"></tbody>
+      </table>
+
+      <h3>useMemo 계산 횟수</h3>
+      <p id="dbg-memo" class="log"></p>
+
+      <h3>useEffect 로그</h3>
+      <ul id="dbg-log"></ul>
+    </aside>
+  </div>
+</main>
+<script type="module" src="./src/app2/main.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (window.__miniReactBooted) return;
+      var box = document.createElement('p');
+      box.style.cssText = 'background:#fde8e4;color:#7a1f10;padding:10px 14px;border-radius:8px;';
+      box.textContent = location.protocol === 'file:'
+        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. standalone-phase2.html 을 열거나 npm run dev 후 http://localhost:5173/CDH/phase2.html 로 접속하세요.'
+        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하고, dev 서버를 재시작한 뒤 Ctrl+Shift+R 로 새로고침하세요.';
+      document.querySelector('main').prepend(box);
+    }, 500);
+  });
+</script>
+</body>
+</html>

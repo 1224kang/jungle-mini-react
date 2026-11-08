@@ -300,15 +300,132 @@ ${pad}</${v.type}>`;
     return 1 + v.children.reduce((sum, c) => sum + countNodes(c), 0);
   }
 
+  // CDH/src/lib/dom/props.js
+  var ALIAS = { className: "class", htmlFor: "for" };
+  function record(el) {
+    if (!el.__mini) el.__mini = { handlers: {}, listeners: {}, controlled: {} };
+    return el.__mini;
+  }
+  function isEventProp(name, value) {
+    return /^on[A-Z]/.test(name) || name.startsWith("on") && typeof value === "function";
+  }
+  var CHANGE_EVENT_TAGS = /* @__PURE__ */ new Set(["SELECT"]);
+  var CHANGE_EVENT_INPUT_TYPES = /* @__PURE__ */ new Set(["checkbox", "radio", "file"]);
+  function eventType(el, name) {
+    const raw = name.slice(2).toLowerCase();
+    if (raw !== "change") return raw;
+    if (CHANGE_EVENT_TAGS.has(el.tagName)) return "change";
+    if (el.tagName === "INPUT" && CHANGE_EVENT_INPUT_TYPES.has(el.type)) return "change";
+    return "input";
+  }
+  function setHandler(el, name, fn) {
+    const rec = record(el);
+    if (typeof fn !== "function") {
+      delete rec.handlers[name];
+      return;
+    }
+    const type = eventType(el, name);
+    rec.handlers[name] = { type, fn };
+    if (rec.listeners[type]) return;
+    const listener = (event) => {
+      for (const h of Object.values(rec.handlers)) if (h.type === event.type) h.fn(event);
+      queueMicrotask(() => syncControlled(el));
+    };
+    rec.listeners[type] = listener;
+    el.addEventListener(type, listener);
+  }
+  function isFormControl(el) {
+    return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT";
+  }
+  function isPropertyProp(el, name) {
+    if (name === "value") return isFormControl(el);
+    if (name === "checked") return el.tagName === "INPUT";
+    return false;
+  }
+  function setProperty(el, name, value) {
+    const rec = record(el);
+    if (value === null || value === void 0) {
+      delete rec.controlled[name];
+      if (name === "value") el.value = "";
+      else el.checked = false;
+      return;
+    }
+    rec.controlled[name] = name === "checked" ? Boolean(value) : String(value);
+    syncControlled(el);
+  }
+  function syncControlled(el) {
+    const c = el.__mini?.controlled;
+    if (!c) return;
+    if ("value" in c && el.value !== c.value) el.value = c.value;
+    if ("checked" in c && el.checked !== c.checked) el.checked = c.checked;
+  }
+  function styleToText(style) {
+    return Object.entries(style).filter(([, v]) => v !== null && v !== void 0 && v !== false && v !== "").map(([k, v]) => `${k.startsWith("--") ? k : k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${v}`).join(";");
+  }
+  function setAttr(el, name, value) {
+    const attr = ALIAS[name] ?? name;
+    if (name === "style" && value && typeof value === "object") value = styleToText(value);
+    if (value === null || value === void 0) {
+      el.removeAttribute(attr);
+    } else if (typeof value === "boolean") {
+      if (attr.startsWith("aria-") || attr.startsWith("data-")) el.setAttribute(attr, String(value));
+      else if (value) el.setAttribute(attr, "");
+      else el.removeAttribute(attr);
+    } else {
+      el.setAttribute(attr, String(value));
+    }
+  }
+  function setOne(el, name, value) {
+    if (isEventProp(name, value)) setHandler(el, name, value);
+    else if (isPropertyProp(el, name)) setProperty(el, name, value);
+    else setAttr(el, name, value);
+  }
+  function applyAttrProps(el, props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (!isEventProp(k, v) && !isPropertyProp(el, k)) setAttr(el, k, v);
+    }
+  }
+  function applyLateProps(el, props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (isEventProp(k, v) || isPropertyProp(el, k)) setOne(el, k, v);
+    }
+  }
+  function patchProps(el, set, remove) {
+    let domChanged = false;
+    for (const name of remove) {
+      if (isEventProp(name, null) || el.__mini?.handlers[name]) setHandler(el, name, null);
+      else if (isPropertyProp(el, name)) {
+        setProperty(el, name, null);
+        domChanged = true;
+      } else {
+        setAttr(el, name, null);
+        domChanged = true;
+      }
+    }
+    const entries = Object.entries(set);
+    for (const [k, v] of entries) {
+      if (!isEventProp(k, v) && !isPropertyProp(el, k)) {
+        setAttr(el, k, v);
+        domChanged = true;
+      }
+    }
+    for (const [k, v] of entries) {
+      if (isPropertyProp(el, k)) {
+        setOne(el, k, v);
+        domChanged = true;
+      }
+    }
+    for (const [k, v] of entries) if (isEventProp(k, v)) setOne(el, k, v);
+    return domChanged;
+  }
+
   // CDH/src/lib/dom/create.js
   function createDOM(v) {
     if (typeof v === "string") return document.createTextNode(v);
     const el = document.createElement(v.type);
-    for (const [k, val] of Object.entries(v.props)) {
-      if (val === null || val === void 0) continue;
-      el.setAttribute(k, String(val));
-    }
+    applyAttrProps(el, v.props);
     for (const child of v.children) el.appendChild(createDOM(child));
+    applyLateProps(el, v.props);
     return el;
   }
 
@@ -339,12 +456,22 @@ ${pad}</${v.type}>`;
     const set = {};
     const remove = [];
     for (const k of Object.keys(newProps)) {
-      if (oldProps[k] !== newProps[k]) set[k] = newProps[k];
+      if (!sameProp(oldProps[k], newProps[k])) set[k] = newProps[k];
     }
     for (const k of Object.keys(oldProps)) {
       if (!(k in newProps)) remove.push(k);
     }
     return Object.keys(set).length || remove.length ? { set, remove } : null;
+  }
+  function sameProp(a, b) {
+    if (a === b) return true;
+    if (!isPlain(a) || !isPlain(b)) return false;
+    const ka = Object.keys(a);
+    const kb = Object.keys(b);
+    return ka.length === kb.length && ka.every((k) => k in b && a[k] === b[k]);
+  }
+  function isPlain(v) {
+    return typeof v === "object" && v !== null && !Array.isArray(v);
   }
   function hasKey(v) {
     return isVNode(v) && v.props.key !== void 0;
@@ -407,6 +534,14 @@ ${pad}</${v.type}>`;
   function short(s, n = 16) {
     return s.length > n ? s.slice(0, n) + "\u2026" : s;
   }
+  function fmt(v) {
+    if (typeof v === "function") return "\u0192";
+    if (typeof v === "object" && v !== null) return short(JSON.stringify(v));
+    return short(String(v));
+  }
+  function isHandler(name, value) {
+    return typeof value === "function" || /^on[A-Z]/.test(name);
+  }
   function label(v) {
     return typeof v === "string" ? `"${short(v)}"` : `<${v.type}>`;
   }
@@ -432,10 +567,11 @@ ${pad}</${v.type}>`;
         lines.push({ op: "TEXT", text: `${where} \u2192 "${short(p.value)}"` });
       } else if (p.op === "PROPS") {
         const parts = [
-          ...Object.entries(p.set).map(([k, v]) => `${k}="${short(String(v))}"`),
+          ...Object.entries(p.set).map(([k, v]) => typeof v === "function" ? `${k}=\u0192` : `${k}="${fmt(v)}"`),
           ...p.remove.map((k) => `${k} \uC81C\uAC70`)
         ];
-        lines.push({ op: "PROPS", text: `${where} : ${parts.join(", ")}` });
+        const handlerOnly = p.remove.length === 0 && Object.entries(p.set).every(([k, v]) => isHandler(k, v));
+        lines.push({ op: handlerOnly ? "HANDLER" : "PROPS", text: `${where} : ${parts.join(", ")}` });
       } else if (p.op === "REPLACE") {
         lines.push({ op: "REPLACE", text: `${where} \u2192 ${label(p.value)}` });
       } else if (p.op === "REMOVE") {
@@ -470,15 +606,15 @@ ${pad}</${v.type}>`;
       const node = nodeAt2(mount, p.path);
       return p.op === "CHILDREN" ? { p, node, snapshot: Array.from(node.childNodes) } : { p, node };
     });
+    const propNodes = [];
     for (const { p, node } of targets) {
       if (p.op === "TEXT") {
         node.textContent = p.value;
         touched.add(node);
       }
       if (p.op === "PROPS") {
-        for (const [k, v] of Object.entries(p.set)) node.setAttribute(k, String(v));
-        for (const k of p.remove) node.removeAttribute(k);
-        touched.add(node);
+        if (patchProps(node, p.set, p.remove)) touched.add(node);
+        propNodes.push(node);
       }
     }
     const replaced = /* @__PURE__ */ new Map();
@@ -497,6 +633,7 @@ ${pad}</${v.type}>`;
     for (const { p, node, snapshot } of targets) {
       if (p.op === "CHILDREN") placeChildren(node, snapshot, p.plan, replaced, touched);
     }
+    for (const node of propNodes) syncControlled(node);
     return { touched };
   }
   function placeChildren(parent, snapshot, plan, replaced, touched) {

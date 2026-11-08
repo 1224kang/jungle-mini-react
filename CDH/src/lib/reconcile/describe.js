@@ -7,6 +7,17 @@ function short(s, n = 16) {
   return s.length > n ? s.slice(0, n) + '…' : s;
 }
 
+// [Phase 2] 속성 값을 화면용 글자로. 함수는 ƒ, 객체는 JSON.
+function fmt(v) {
+  if (typeof v === 'function') return 'ƒ';
+  if (typeof v === 'object' && v !== null) return short(JSON.stringify(v));
+  return short(String(v));
+}
+
+function isHandler(name, value) {
+  return typeof value === 'function' || /^on[A-Z]/.test(name);
+}
+
 function label(v) {
   return typeof v === 'string' ? `"${short(v)}"` : `<${v.type}>`;
 }
@@ -36,10 +47,13 @@ export function describePatches(oldRoot, patches) {
       lines.push({ op: 'TEXT', text: `${where} → "${short(p.value)}"` });
     } else if (p.op === 'PROPS') {
       const parts = [
-        ...Object.entries(p.set).map(([k, v]) => `${k}="${short(String(v))}"`),
+        ...Object.entries(p.set).map(([k, v]) => (typeof v === 'function' ? `${k}=ƒ` : `${k}="${fmt(v)}"`)),
         ...p.remove.map((k) => `${k} 제거`),
       ];
-      lines.push({ op: 'PROPS', text: `${where} : ${parts.join(', ')}` });
+      // 이벤트 핸들러만 바뀐 패치는 HANDLER 로 따로 표시 (DOM 은 안 바뀜)
+      const handlerOnly =
+        p.remove.length === 0 && Object.entries(p.set).every(([k, v]) => isHandler(k, v));
+      lines.push({ op: handlerOnly ? 'HANDLER' : 'PROPS', text: `${where} : ${parts.join(', ')}` });
     } else if (p.op === 'REPLACE') {
       lines.push({ op: 'REPLACE', text: `${where} → ${label(p.value)}` });
     } else if (p.op === 'REMOVE') {

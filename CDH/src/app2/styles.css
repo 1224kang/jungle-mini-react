@@ -1,0 +1,41 @@
+/* Phase 2 데모 전용 스타일. 색 변수와 기본 틀은 ../app/styles.css 를 함께 불러서 씁니다. */
+.layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+
+.todo-app > h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.todo-app button, .todo-app input[type="text"] {
+  font: inherit; color: inherit; background: var(--tile); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 12px;
+}
+.todo-app button { cursor: pointer; }
+.todo-app button:hover:not(:disabled) { border-color: var(--accent); }
+.todo-app button:disabled { opacity: 0.45; cursor: not-allowed; }
+.todo-app input[type="text"] { flex: 1; min-width: 0; }
+
+.todo-form { display: flex; gap: 8px; margin-bottom: 10px; }
+.filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.filters button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.todos { list-style: none; margin: 0 0 10px; padding: 0; }
+.todo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+.todo label { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; min-width: 0; }
+.todo .text { overflow-wrap: anywhere; }
+.todo.done .text { text-decoration: line-through; color: var(--muted); }
+.todo .x { padding: 0 9px; line-height: 1.4; }
+.empty { color: var(--muted); padding: 10px 4px; margin: 0 0 10px; }
+
+.stats { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 10px; }
+.bar { flex: 1; min-width: 80px; height: 8px; border-radius: 4px; background: var(--code); overflow: hidden; }
+.bar i { display: block; height: 100%; background: #1f8a4c; transition: width 0.2s; }
+
+.timer, .burst { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule); font-size: 0.92rem; }
+.timer strong { font-variant-numeric: tabular-nums; font-size: 1.2rem; min-width: 4.2ch; }
+
+.dbg table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.dbg th, .dbg td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; word-break: break-all; }
+.dbg td:first-child, .dbg th:first-child { width: 2.5em; }
+.dbg ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.85rem; max-height: 180px; overflow: auto; }
+.dbg li { padding: 3px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
+.dbg .big { font-size: 1.4rem; font-weight: 700; }
+.dbg label.switch { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; margin: 6px 0; }
+.op-handler { color: var(--muted); }
+.dbg td:nth-child(2), .dbg th:nth-child(2) { width: 4.5em; white-space: nowrap; word-break: normal; }

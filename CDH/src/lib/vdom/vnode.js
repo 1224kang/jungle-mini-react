@@ -2,6 +2,8 @@
 // 흐름 지도는 app/main.js 맨 위에 있습니다.
 //   쓰이는 곳: 테스트(h 로 손쉽게 만들기), diff.js (isVNode, keyOf), app.js (countNodes → [2] 로드 로그, [4-5] 패치 요약)
 // 텍스트 자식은 문자열 그대로 둡니다.
+// [Phase 2] type 에는 태그 이름(문자열) 말고 함수형 컴포넌트도 줄 수 있습니다: h(Card, { title }, ...).
+//   함수 type 은 component/resolve.js 가 diff 전에 태그 노드로 풀어 줍니다. diff / patch 는 문자열 type 만 봅니다.
 
 export function h(type, props = null, ...children) {
   return {

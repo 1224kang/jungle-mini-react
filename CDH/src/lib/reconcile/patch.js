@@ -12,6 +12,7 @@
 // 반환값의 touched 는 "실제로 건드린 DOM 노드" 모음입니다 (화면에 표시하는 용도).
 
 import { createDOM } from '../dom/create.js';
+import { patchProps, syncControlled } from '../dom/props.js';
 
 // 옛 트리 기준 path 를 DOM 노드로 바꿉니다. mount 의 첫 자식이 트리의 루트입니다.
 function nodeAt(mount, path) {
@@ -34,15 +35,16 @@ export function applyPatches(mount, patches) {
   });
 
   // 2) 글자와 속성
+  const propNodes = [];
   for (const { p, node } of targets) {
     if (p.op === 'TEXT') {
       node.textContent = p.value;
       touched.add(node);
     }
     if (p.op === 'PROPS') {
-      for (const [k, v] of Object.entries(p.set)) node.setAttribute(k, String(v));
-      for (const k of p.remove) node.removeAttribute(k);
-      touched.add(node);
+      // [Phase 2] 속성 규칙은 dom/props.js. 이벤트 핸들러만 바뀐 경우는 DOM 이 안 바뀌므로 touched 에 넣지 않습니다.
+      if (patchProps(node, p.set, p.remove)) touched.add(node);
+      propNodes.push(node);
     }
   }
 
@@ -67,6 +69,9 @@ export function applyPatches(mount, patches) {
   for (const { p, node, snapshot } of targets) {
     if (p.op === 'CHILDREN') placeChildren(node, snapshot, p.plan, replaced, touched);
   }
+
+  // 6) [Phase 2] <select value> 처럼 자식(option)이 바뀐 뒤에야 맞출 수 있는 value 를 다시 맞춘다.
+  for (const node of propNodes) syncControlled(node);
 
   return { touched };
 }
