@@ -251,7 +251,12 @@ describe('h - 3장 범위 밖', () => {
     expect(() => h(() => null, null)).toThrow(unsupported);
   });
 
-  it('3장 함수 이벤트 핸들러 (props 값이 함수) → 에러', () => {
-    expect(() => h('button', { onclick: () => {} })).toThrow(unsupported);
+  it('3장 on으로 시작하지 않는 함수 prop → 에러', () => {
+    expect(() => h('button', { handler: () => {} })).toThrow(unsupported);
+  });
+
+  it('3장 on* 함수 prop은 그대로 보존한다', () => {
+    const handler = () => {};
+    expect(h('button', { onclick: handler }).props.onclick).toBe(handler);
   });
 });
