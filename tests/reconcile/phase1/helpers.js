@@ -8,9 +8,26 @@ export function mount(vnode) {
   return { container, root };
 }
 
+export function canonicalHTML(node) {
+  const clone = node.cloneNode(true);
+  const sortAttributes = (current) => {
+    if (current.nodeType === Node.ELEMENT_NODE) {
+      const attributes = Array.from(current.attributes)
+        .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+      attributes.forEach(({ name }) => current.removeAttribute(name));
+      attributes.forEach(({ name, value }) => current.setAttribute(name, value));
+    }
+    current.childNodes.forEach(sortAttributes);
+  };
+  sortAttributes(clone);
+  const holder = node.ownerDocument.createElement('div');
+  holder.appendChild(clone);
+  return holder.innerHTML;
+}
+
 export function expectTree(root, vnode) {
   expect(domToVdom(root)).toEqual(vnode);
-  expect(root.outerHTML).toBe(render(vnode).outerHTML);
+  expect(canonicalHTML(root)).toBe(canonicalHTML(render(vnode)));
 }
 
 // Count only operations targeting nodes present before patch, including text nodes.

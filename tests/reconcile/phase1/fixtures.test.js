@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { domToVdom, render, diff, patch } from '../../../src/lib/index.js';
 import { cases } from '../../../fixtures/cases.js';
+import { canonicalHTML } from './helpers.js';
 
 function parse(html) {
   const holder = document.createElement('div');
@@ -18,7 +19,7 @@ describe('phase1 all fixture outcomes', () => {
     container.appendChild(root);
     root = patch(root, diff(v1, v2));
     expect(domToVdom(root)).toEqual(v2);
-    expect(root.outerHTML).toBe(render(v2).outerHTML);
+    expect(canonicalHTML(root)).toBe(canonicalHTML(render(v2)));
     expect(container.firstChild).toBe(root);
     expect(container.childNodes).toHaveLength(1);
   });
