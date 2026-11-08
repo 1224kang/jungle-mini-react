@@ -3,173 +3,68 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mini React · Phase 1</title>
+<title>Mini React · Phase 1 + 2</title>
 <style>
-:root {
-  --bg: #fafaf7;
-  --fg: #1d1d1f;
-  --muted: #6b6b6b;
-  --rule: #dcd9cf;
-  --accent: #2b5fd9;
-  --tile: #ffffff;
-  --code: #f2f0e9;
-  --flash: #ffe58a;
-}
-
+:root { --bg: #fafaf7; --fg: #1d1d1f; --muted: #6b6b6b; --rule: #dcd9cf; --accent: #2b5fd9; --tile: #fff; --code: #f2f0e9; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #161616;
-    --fg: #ecebe6;
-    --muted: #9a9890;
-    --rule: #33322e;
-    --accent: #7ea6ff;
-    --tile: #1d1c1a;
-    --code: #222120;
-    --flash: #7a6a1f;
-  }
+  :root { --bg: #161616; --fg: #ecebe6; --muted: #9a9890; --rule: #33322e; --accent: #7ea6ff; --tile: #1d1c1a; --code: #222120; }
 }
-
 * { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: "Noto Sans KR", system-ui, sans-serif;
-  line-height: 1.6;
-}
-
-main {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 32px 16px 64px;
-}
-
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Noto Sans KR", system-ui, sans-serif; line-height: 1.6; }
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
 h1 { margin: 0 0 4px; font-size: 1.6rem; }
-h2 { font-size: 1.05rem; margin: 0 0 4px; }
-h3 { font-size: 0.95rem; margin: 16px 0 6px; color: var(--muted); }
-
-.sub { color: var(--muted); margin: 0 0 24px; }
-.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 10px; }
-
-.areas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.panel {
-  background: var(--tile);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.areas .panel { margin-bottom: 0; }
-
-.box {
-  min-height: 160px;
-  border: 1px dashed var(--muted);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-#test-pane { outline: none; }
-#test-pane:focus { border-color: var(--accent); border-style: solid; }
-
-textarea {
-  width: 100%;
-  min-height: 200px;
-  font: 0.88rem ui-monospace, SFMono-Regular, Consolas, monospace;
-  color: var(--fg);
-  background: var(--code);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 10px;
-  resize: vertical;
-}
-
-.quick, .controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.quick { margin-bottom: 10px; }
-.controls { margin: 16px 0 8px; }
-
-button {
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 7px 12px;
-  cursor: pointer;
-}
-
+h2 { margin: 36px 0 10px; font-size: 1.2rem; padding-top: 16px; border-top: 2px solid var(--rule); }
+h3 { margin: 14px 0 6px; font-size: 0.95rem; color: var(--muted); }
+h3:first-child { margin-top: 0; }
+.sub, .hint { color: var(--muted); font-size: 0.9rem; margin: 0 0 10px; }
+.areas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .areas { grid-template-columns: 1fr; } }
+.panel { background: var(--tile); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; margin-bottom: 16px; min-width: 0; }
+.box { border: 1px dashed var(--rule); border-radius: 8px; padding: 12px; min-height: 120px; }
+.box:focus { outline: 2px solid var(--accent); }
+.card h4 { margin: 0 0 6px; }
+.controls { display: flex; gap: 8px; align-items: center; margin: 0 0 16px; flex-wrap: wrap; }
+button, input[type="text"] { font: inherit; color: inherit; background: var(--tile); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 12px; }
+button { cursor: pointer; }
 button:hover:not(:disabled) { border-color: var(--accent); }
-button:disabled { opacity: 0.4; cursor: default; }
-button.attention { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+.log { font-size: 0.9rem; color: var(--muted); margin: 4px 0; }
+.big { font-size: 1.4rem; color: var(--fg); }
+.lines { margin: 0; padding-left: 18px; font-size: 0.9rem; }
+.code { background: var(--code); border-radius: 6px; padding: 8px 10px; margin: 0; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; min-height: 2em; }
+.row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 0.92rem; }
 
-.history { display: inline-flex; gap: 6px; margin-left: 8px; }
-.chip {
-  padding: 2px 10px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-.chip.on { border-color: var(--accent); color: var(--fg); background: color-mix(in srgb, var(--accent) 14%, transparent); }
-
-.log { color: var(--muted); font-size: 0.92rem; min-height: 1.5em; margin: 6px 0; }
-
-/* 실제 영역에서 방금 바뀐 부분 */
-/* (강조는 app.js 의 el.animate 로 처리. class 를 바꾸지 않아 DOM 과 VNode 가 어긋나지 않는다) */
-
-/* 예시 편집으로 바꾸는 속성 */
-.highlight { outline: 2px solid var(--accent); outline-offset: 4px; }
-
-.patches { list-style: none; margin: 8px 0 0; padding: 0; font-size: 0.9rem; }
-.patches li { padding: 4px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
-.op {
-  display: inline-block;
-  min-width: 74px;
-  padding: 0 8px;
-  border-radius: 4px;
-  font: 0.78rem ui-monospace, Consolas, monospace;
-  text-align: center;
-  background: var(--code);
-}
-.op-text { color: #1f8a4c; }
-.op-props { color: #b7791f; }
-.op-replace { color: #c2412d; }
-.op-remove { color: #c2412d; }
-.op-create { color: #2b5fd9; }
-.op-move { color: #8a4fd9; }
-
-@media (max-width: 720px) {
-  .areas { grid-template-columns: 1fr; }
-}
+/* Phase 2 Todo 앱 */
+.todo-app form { display: flex; gap: 8px; margin-bottom: 10px; }
+.todo-app input[type="text"] { flex: 1; min-width: 0; }
+.filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.filters .on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.todo-app ul { list-style: none; margin: 0 0 10px; padding: 0; }
+.todo-app li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+.todo-app li label { display: flex; gap: 8px; align-items: center; flex: 1; cursor: pointer; }
+.todo-app li.done span { text-decoration: line-through; color: var(--muted); }
+.x { padding: 0 9px; }
+.empty { color: var(--muted); }
+.todo-app .row { border-top: 1px dashed var(--rule); padding-top: 8px; }
 
 </style>
 </head>
 <body>
 <main>
-  <h1>Mini React · Phase 1</h1>
-  <p class="sub">실제 DOM → Virtual DOM → Diff → Patch → State History</p>
+  <h1>Mini React</h1>
+  <p class="sub">Phase 1: Virtual DOM → Diff → Patch → State History &nbsp;·&nbsp; Phase 2: Component · State · Hooks</p>
 
+  <!-- ═══════════ Phase 1 데모: 실제 영역 / 테스트 영역 / Patch / 뒤로 / 앞으로 ═══════════ -->
+  <h2>Phase 1 · Virtual DOM + Diff + Patch</h2>
   <section class="areas">
     <div class="panel">
-      <h2>실제 영역</h2>
+      <h3>실제 영역</h3>
       <p class="hint">아래 HTML 이 샘플입니다. 페이지가 로드되면 이 DOM 을 Virtual DOM 으로 변환합니다.</p>
       <div id="actual" class="box">
         <article class="card" id="sample">
-          <h2>장보기</h2>
+          <h4>장보기</h4>
           <p>오늘 살 것: <b>3가지</b></p>
-          <ul class="list">
+          <ul>
             <li key="a">사과</li>
             <li key="b">바나나</li>
             <li key="c">포도</li>
@@ -179,485 +74,188 @@ button.attention { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(
         </article>
       </div>
     </div>
-
     <div class="panel">
-      <h2>테스트 영역</h2>
-      <p class="hint">Virtual DOM 으로 렌더링된 화면입니다. 직접 고치거나, 아래 HTML 코드를 고치세요.</p>
-      <div class="quick" role="group" aria-label="예시 편집">
-        <button type="button" data-edit="text">텍스트 바꾸기</button>
-        <button type="button" data-edit="attr">속성 바꾸기</button>
-        <button type="button" data-edit="tag">태그 바꾸기</button>
-        <button type="button" data-edit="add">항목 추가</button>
-        <button type="button" data-edit="remove">항목 삭제</button>
-        <button type="button" data-edit="reorder">순서 뒤집기</button>
-      </div>
+      <h3>테스트 영역</h3>
+      <p class="hint">Virtual DOM 으로 렌더링된 화면입니다. 글자를 고치거나 지워 보세요 (고친 뒤 Patch).</p>
       <div id="test-pane" class="box" contenteditable="true" spellcheck="false"></div>
-      <h3>HTML 코드</h3>
-      <textarea id="test-code" spellcheck="false" aria-label="테스트 영역 HTML 코드"></textarea>
-      <p id="dirty" class="log"></p>
+      <p id="p1-dirty" class="log"></p>
     </div>
   </section>
-
   <div class="controls">
     <button id="btn-back" type="button">뒤로가기</button>
     <button id="btn-patch" type="button">Patch</button>
     <button id="btn-forward" type="button">앞으로가기</button>
-    <span id="history-view" class="history" aria-label="State History"></span>
+    <span id="p1-history" class="log"></span>
   </div>
-  <p id="log" class="log"></p>
+  <div class="panel">
+    <h3>이번 패치</h3>
+    <ul id="p1-patches" class="lines"></ul>
+  </div>
 
-  <section class="panel">
-    <h2>이번 패치</h2>
-    <p id="patch-summary" class="log">아직 Patch 하지 않았습니다.</p>
-    <ul id="patch-list" class="patches"></ul>
+  <!-- ═══════════ Phase 2 데모: 루트 컴포넌트(상태) + 자식 컴포넌트(props) ═══════════ -->
+  <h2>Phase 2 · Component · State · Hooks</h2>
+  <section class="areas">
+    <div class="panel">
+      <p class="hint">상태는 루트(TodoApp)에만 있고 자식은 props 만 받습니다. 바뀐 부분만 갱신됩니다 (노랗게 깜빡임).</p>
+      <div id="app"></div>
+    </div>
+    <div class="panel">
+      <h3>안에서 일어나는 일</h3>
+      <p class="log">렌더 횟수 <strong id="p2-renders" class="big">0</strong></p>
+      <label class="row"><input id="batch-toggle" type="checkbox"> batching (같은 틱의 setState 를 모아 렌더 1번)</label>
+      <p class="hint">끄고 켜며 "+1 을 3번 호출" 의 렌더 횟수를 비교해 보세요.</p>
+      <h3>이번 렌더</h3>
+      <p id="p2-summary" class="log"></p>
+      <pre id="p2-patches" class="code"></pre>
+      <h3>hooks 배열 (칸 번호 = Hook 호출 순서)</h3>
+      <pre id="p2-hooks" class="code"></pre>
+      <h3>useMemo 계산 횟수</h3>
+      <p id="p2-memo" class="log"></p>
+      <h3>useEffect 로그</h3>
+      <pre id="p2-log" class="code"></pre>
+    </div>
   </section>
 </main>
 <script>
 (() => {
-  // CDH/src/lib/vdom/convert.js
+  // CDH/src/mini-react.js
+  function h(type, props, ...children) {
+    const kids = children.flat(Infinity).filter((c) => c !== null && c !== void 0 && typeof c !== "boolean").map((c) => typeof c === "number" ? String(c) : c);
+    return { type, props: props ?? {}, children: kids };
+  }
   var TEXT_NODE = 3;
   var ELEMENT_NODE = 1;
-  var VOID_TAGS = /* @__PURE__ */ new Set([
-    "area",
-    "base",
-    "br",
-    "col",
-    "embed",
-    "hr",
-    "img",
-    "input",
-    "link",
-    "meta",
-    "source",
-    "track",
-    "wbr"
-  ]);
   function domToVNode(node) {
     if (node.nodeType === TEXT_NODE) return node.nodeValue;
     const props = {};
     for (const attr of node.attributes) props[attr.name] = attr.value;
     const children = [];
     for (const child of node.childNodes) {
-      if (child.nodeType === TEXT_NODE) {
-        if (child.nodeValue.trim() !== "") children.push(child.nodeValue);
-      } else if (child.nodeType === ELEMENT_NODE) {
-        children.push(domToVNode(child));
-      }
+      if (child.nodeType === TEXT_NODE && child.nodeValue.trim() !== "") children.push(child.nodeValue);
+      if (child.nodeType === ELEMENT_NODE) children.push(domToVNode(child));
     }
     return { type: node.nodeName.toLowerCase(), props, children };
   }
-  function stripBlankNodes(node) {
+  function removeBlankNodes(node) {
     for (const child of [...node.childNodes]) {
-      if (child.nodeType === TEXT_NODE) {
-        if (child.nodeValue.trim() === "") child.remove();
-      } else if (child.nodeType === ELEMENT_NODE) {
-        stripBlankNodes(child);
-      } else {
-        child.remove();
-      }
+      if (child.nodeType === ELEMENT_NODE) removeBlankNodes(child);
+      else if (child.nodeType !== TEXT_NODE || child.nodeValue.trim() === "") child.remove();
     }
   }
-  function parseHTML(html) {
-    const template = document.createElement("template");
-    template.innerHTML = html;
-    const root = [...template.content.childNodes].find((n) => n.nodeType === ELEMENT_NODE);
-    return root ? domToVNode(root) : null;
-  }
-  function openTag(v) {
-    const attrs = Object.entries(v.props).filter(([, val]) => val !== null && val !== void 0).map(([k, val]) => ` ${k}="${escapeAttr(String(val))}"`).join("");
-    return `<${v.type}${attrs}>`;
-  }
-  function vnodeToHTML(v) {
-    if (typeof v === "string") return escapeText(v);
-    if (VOID_TAGS.has(v.type)) return openTag(v);
-    return `${openTag(v)}${v.children.map(vnodeToHTML).join("")}</${v.type}>`;
-  }
-  function prettyHTML(v, depth = 0) {
-    const pad = "  ".repeat(depth);
-    const inline = typeof v === "string" || VOID_TAGS.has(v.type) || v.children.length === 0 || v.children.some((c) => typeof c === "string");
-    if (inline) return pad + vnodeToHTML(v);
-    const inner = v.children.map((c) => prettyHTML(c, depth + 1)).join("\n");
-    return `${pad}${openTag(v)}
-${inner}
-${pad}</${v.type}>`;
-  }
-  function escapeText(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
-  function escapeAttr(s) {
-    return escapeText(s).replace(/"/g, "&quot;");
-  }
-
-  // CDH/src/lib/vdom/vnode.js
-  function isVNode(value) {
-    return typeof value === "object" && value !== null && typeof value.type === "string";
-  }
-  function keyOf(value) {
-    return isVNode(value) ? value.props.key : void 0;
-  }
-  function countNodes(v) {
-    if (typeof v === "string") return 1;
-    return 1 + v.children.reduce((sum, c) => sum + countNodes(c), 0);
-  }
-
-  // CDH/src/lib/dom/props.js
-  var ALIAS = { className: "class", htmlFor: "for" };
-  function record(el) {
-    if (!el.__mini) el.__mini = { handlers: {}, listeners: {}, controlled: {} };
-    return el.__mini;
-  }
-  function isEventProp(name, value) {
-    return /^on[A-Z]/.test(name) || name.startsWith("on") && typeof value === "function";
-  }
-  var CHANGE_EVENT_TAGS = /* @__PURE__ */ new Set(["SELECT"]);
-  var CHANGE_EVENT_INPUT_TYPES = /* @__PURE__ */ new Set(["checkbox", "radio", "file"]);
-  function eventType(el, name) {
-    const raw = name.slice(2).toLowerCase();
-    if (raw !== "change") return raw;
-    if (CHANGE_EVENT_TAGS.has(el.tagName)) return "change";
-    if (el.tagName === "INPUT" && CHANGE_EVENT_INPUT_TYPES.has(el.type)) return "change";
-    return "input";
-  }
-  function setHandler(el, name, fn) {
-    const rec = record(el);
-    if (typeof fn !== "function") {
-      delete rec.handlers[name];
-      return;
-    }
-    const type = eventType(el, name);
-    rec.handlers[name] = { type, fn };
-    if (rec.listeners[type]) return;
-    const listener = (event) => {
-      for (const h of Object.values(rec.handlers)) if (h.type === event.type) h.fn(event);
-      queueMicrotask(() => syncControlled(el));
-    };
-    rec.listeners[type] = listener;
-    el.addEventListener(type, listener);
-  }
-  function isFormControl(el) {
-    return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT";
-  }
-  function isPropertyProp(el, name) {
-    if (name === "value") return isFormControl(el);
-    if (name === "checked") return el.tagName === "INPUT";
-    return false;
-  }
-  function setProperty(el, name, value) {
-    const rec = record(el);
-    if (value === null || value === void 0) {
-      delete rec.controlled[name];
-      if (name === "value") el.value = "";
-      else el.checked = false;
-      return;
-    }
-    rec.controlled[name] = name === "checked" ? Boolean(value) : String(value);
-    syncControlled(el);
-  }
-  function syncControlled(el) {
-    const c = el.__mini?.controlled;
-    if (!c) return;
-    if ("value" in c && el.value !== c.value) el.value = c.value;
-    if ("checked" in c && el.checked !== c.checked) el.checked = c.checked;
-  }
-  function styleToText(style) {
-    return Object.entries(style).filter(([, v]) => v !== null && v !== void 0 && v !== false && v !== "").map(([k, v]) => `${k.startsWith("--") ? k : k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${v}`).join(";");
-  }
-  function setAttr(el, name, value) {
-    const attr = ALIAS[name] ?? name;
-    if (name === "style" && value && typeof value === "object") value = styleToText(value);
-    if (value === null || value === void 0) {
-      el.removeAttribute(attr);
-    } else if (typeof value === "boolean") {
-      if (attr.startsWith("aria-") || attr.startsWith("data-")) el.setAttribute(attr, String(value));
-      else if (value) el.setAttribute(attr, "");
-      else el.removeAttribute(attr);
-    } else {
-      el.setAttribute(attr, String(value));
-    }
-  }
-  function setOne(el, name, value) {
-    if (isEventProp(name, value)) setHandler(el, name, value);
-    else if (isPropertyProp(el, name)) setProperty(el, name, value);
-    else setAttr(el, name, value);
-  }
-  function applyAttrProps(el, props) {
-    for (const [k, v] of Object.entries(props)) {
-      if (!isEventProp(k, v) && !isPropertyProp(el, k)) setAttr(el, k, v);
-    }
-  }
-  function applyLateProps(el, props) {
-    for (const [k, v] of Object.entries(props)) {
-      if (isEventProp(k, v) || isPropertyProp(el, k)) setOne(el, k, v);
-    }
-  }
-  function patchProps(el, set, remove) {
-    let domChanged = false;
-    for (const name of remove) {
-      if (isEventProp(name, null) || el.__mini?.handlers[name]) setHandler(el, name, null);
-      else if (isPropertyProp(el, name)) {
-        setProperty(el, name, null);
-        domChanged = true;
-      } else {
-        setAttr(el, name, null);
-        domChanged = true;
-      }
-    }
-    const entries = Object.entries(set);
-    for (const [k, v] of entries) {
-      if (!isEventProp(k, v) && !isPropertyProp(el, k)) {
-        setAttr(el, k, v);
-        domChanged = true;
-      }
-    }
-    for (const [k, v] of entries) {
-      if (isPropertyProp(el, k)) {
-        setOne(el, k, v);
-        domChanged = true;
-      }
-    }
-    for (const [k, v] of entries) if (isEventProp(k, v)) setOne(el, k, v);
-    return domChanged;
-  }
-
-  // CDH/src/lib/dom/create.js
-  function createDOM(v) {
-    if (typeof v === "string") return document.createTextNode(v);
-    const el = document.createElement(v.type);
-    applyAttrProps(el, v.props);
-    for (const child of v.children) el.appendChild(createDOM(child));
-    applyLateProps(el, v.props);
+  function createDOM(vnode) {
+    if (typeof vnode === "string") return document.createTextNode(vnode);
+    const el = document.createElement(vnode.type);
+    for (const child of vnode.children) el.appendChild(createDOM(child));
+    for (const [name, value] of Object.entries(vnode.props)) setProp(el, name, value);
     return el;
   }
-
-  // CDH/src/lib/reconcile/diff.js
-  function typeOf(v) {
-    return typeof v === "string" ? "#text" : v.type;
-  }
-  function sameType(a, b) {
-    return typeOf(a) === typeOf(b);
-  }
-  function diff(oldRoot, newRoot) {
-    if (!sameType(oldRoot, newRoot)) {
-      return [{ op: "REPLACE", path: [], value: newRoot }];
+  function setProp(el, name, value) {
+    if (name.startsWith("on")) {
+      el[name.toLowerCase()] = typeof value === "function" ? value : null;
+    } else if ((name === "value" || name === "checked") && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) {
+      const next = value ?? (name === "checked" ? false : "");
+      if (el[name] !== next) el[name] = next;
+    } else {
+      const attr = name === "className" ? "class" : name;
+      if (value === null || value === void 0 || value === false) el.removeAttribute(attr);
+      else el.setAttribute(attr, value === true ? "" : String(value));
     }
-    return diffNode(oldRoot, newRoot, []);
   }
-  function diffNode(oldN, newN, path) {
-    if (typeof oldN === "string") {
-      return oldN === newN ? [] : [{ op: "TEXT", path, value: newN }];
+  function diff(oldNode, newNode, path = []) {
+    if (typeof oldNode === "string" || typeof newNode === "string") {
+      if (oldNode === newNode) return [];
+      const bothText = typeof oldNode === typeof newNode;
+      return [{ op: bothText ? "TEXT" : "REPLACE", path, value: newNode }];
     }
-    const patches = [];
-    const props = diffProps(oldN.props, newN.props);
-    if (props) patches.push({ op: "PROPS", path, ...props });
-    patches.push(...diffChildren(oldN.children, newN.children, path));
-    return patches;
+    if (oldNode.type !== newNode.type) return [{ op: "REPLACE", path, value: newNode }];
+    return [...diffProps(oldNode.props, newNode.props, path), ...diffChildren(oldNode.children, newNode.children, path)];
   }
-  function diffProps(oldProps, newProps) {
+  function diffProps(oldProps, newProps, path) {
     const set = {};
     const remove = [];
-    for (const k of Object.keys(newProps)) {
-      if (!sameProp(oldProps[k], newProps[k])) set[k] = newProps[k];
-    }
-    for (const k of Object.keys(oldProps)) {
-      if (!(k in newProps)) remove.push(k);
-    }
-    return Object.keys(set).length || remove.length ? { set, remove } : null;
+    for (const k of Object.keys(newProps)) if (oldProps[k] !== newProps[k]) set[k] = newProps[k];
+    for (const k of Object.keys(oldProps)) if (!(k in newProps)) remove.push(k);
+    return Object.keys(set).length || remove.length ? [{ op: "PROPS", path, set, remove }] : [];
   }
-  function sameProp(a, b) {
-    if (a === b) return true;
-    if (!isPlain(a) || !isPlain(b)) return false;
-    const ka = Object.keys(a);
-    const kb = Object.keys(b);
-    return ka.length === kb.length && ka.every((k) => k in b && a[k] === b[k]);
-  }
-  function isPlain(v) {
-    return typeof v === "object" && v !== null && !Array.isArray(v);
-  }
-  function hasKey(v) {
-    return isVNode(v) && v.props.key !== void 0;
-  }
+  var keyOf = (v) => typeof v === "string" ? void 0 : v.props.key;
   function diffChildren(oldKids, newKids, path) {
-    const keyed = oldKids.some(hasKey) || newKids.some(hasKey);
-    const matchOf = newKids.map(() => -1);
-    const usedOld = oldKids.map(() => false);
-    if (keyed) {
-      const oldByKey = /* @__PURE__ */ new Map();
-      oldKids.forEach((c, i) => {
-        if (hasKey(c)) oldByKey.set(keyOf(c), i);
-      });
-      newKids.forEach((c, j) => {
-        if (!hasKey(c)) return;
-        const i = oldByKey.get(keyOf(c));
-        if (i !== void 0 && !usedOld[i]) {
-          matchOf[j] = i;
-          usedOld[i] = true;
-        }
-      });
-    } else {
-      newKids.forEach((_, j) => {
-        if (j < oldKids.length) {
-          matchOf[j] = j;
-          usedOld[j] = true;
-        }
-      });
-    }
     const patches = [];
+    const used = /* @__PURE__ */ new Set();
+    const plan = newKids.map((kid, j) => {
+      const i = findMatch(oldKids, kid, j, used);
+      if (i === -1) return { create: kid };
+      used.add(i);
+      patches.push(...diff(oldKids[i], kid, [...path, i]));
+      return { from: i };
+    });
     oldKids.forEach((_, i) => {
-      if (!usedOld[i]) patches.push({ op: "REMOVE", path: [...path, i] });
+      if (!used.has(i)) patches.push({ op: "REMOVE", path: [...path, i] });
     });
-    newKids.forEach((c, j) => {
-      const i = matchOf[j];
-      if (i === -1) return;
-      const old = oldKids[i];
-      if (sameType(old, c)) patches.push(...diffNode(old, c, [...path, i]));
-      else patches.push({ op: "REPLACE", path: [...path, i], value: c });
-    });
-    const moved = newKids.map(() => false);
-    if (keyed) {
-      let lastPlaced = 0;
-      newKids.forEach((_, j) => {
-        const i = matchOf[j];
-        if (i === -1) return;
-        if (i < lastPlaced) moved[j] = true;
-        else lastPlaced = i;
-      });
-    }
-    const plan = newKids.map(
-      (c, j) => matchOf[j] === -1 ? { create: c } : { from: matchOf[j], moved: moved[j] }
-    );
-    const structural = usedOld.some((u) => !u) || plan.some((p) => "create" in p || p.moved);
-    if (structural) patches.push({ op: "CHILDREN", path, plan });
+    const froms = plan.filter((p) => "from" in p).map((p) => p.from);
+    const sameOrder = froms.every((f, k) => k === 0 || f > froms[k - 1]);
+    if (plan.some((p) => "create" in p) || !sameOrder) patches.push({ op: "CHILDREN", path, plan });
     return patches;
   }
-
-  // CDH/src/lib/reconcile/describe.js
-  function short(s, n = 16) {
-    return s.length > n ? s.slice(0, n) + "\u2026" : s;
+  function findMatch(oldKids, kid, j, used) {
+    const key = keyOf(kid);
+    if (key !== void 0) return oldKids.findIndex((o, i) => !used.has(i) && keyOf(o) === key);
+    const samePlace = j < oldKids.length && !used.has(j) && keyOf(oldKids[j]) === void 0;
+    return samePlace ? j : -1;
   }
-  function fmt(v) {
-    if (typeof v === "function") return "\u0192";
-    if (typeof v === "object" && v !== null) return short(JSON.stringify(v));
-    return short(String(v));
-  }
-  function isHandler(name, value) {
-    return typeof value === "function" || /^on[A-Z]/.test(name);
-  }
-  function label(v) {
-    return typeof v === "string" ? `"${short(v)}"` : `<${v.type}>`;
-  }
-  function nodeAt(root, path) {
-    let n = root;
-    for (const i of path) n = n.children[i];
-    return n;
-  }
-  function pathLabel(root, path) {
-    const names = [label(root)];
-    let n = root;
-    for (const i of path) {
-      n = n.children[i];
-      names.push(label(n));
-    }
-    return names.join(" > ");
-  }
-  function describePatches(oldRoot, patches) {
-    const lines = [];
-    for (const p of patches) {
-      const where = pathLabel(oldRoot, p.path);
-      if (p.op === "TEXT") {
-        lines.push({ op: "TEXT", text: `${where} \u2192 "${short(p.value)}"` });
-      } else if (p.op === "PROPS") {
-        const parts = [
-          ...Object.entries(p.set).map(([k, v]) => typeof v === "function" ? `${k}=\u0192` : `${k}="${fmt(v)}"`),
-          ...p.remove.map((k) => `${k} \uC81C\uAC70`)
-        ];
-        const handlerOnly = p.remove.length === 0 && Object.entries(p.set).every(([k, v]) => isHandler(k, v));
-        lines.push({ op: handlerOnly ? "HANDLER" : "PROPS", text: `${where} : ${parts.join(", ")}` });
-      } else if (p.op === "REPLACE") {
-        lines.push({ op: "REPLACE", text: `${where} \u2192 ${label(p.value)}` });
-      } else if (p.op === "REMOVE") {
-        lines.push({ op: "REMOVE", text: where });
-      } else if (p.op === "CHILDREN") {
-        const parent = nodeAt(oldRoot, p.path);
-        p.plan.forEach((entry, j) => {
-          if ("create" in entry) {
-            lines.push({ op: "CREATE", text: `${where} [${j}] \u2190 ${label(entry.create)}` });
-          } else if (entry.moved) {
-            lines.push({
-              op: "MOVE",
-              text: `${where} : ${label(parent.children[entry.from])} ${entry.from} \u2192 ${j}`
-            });
-          }
-        });
-      }
-    }
-    return lines;
-  }
-
-  // CDH/src/lib/reconcile/patch.js
-  function nodeAt2(mount, path) {
+  function nodeAt(mount, path) {
     let node = mount.firstChild;
     for (const i of path) node = node.childNodes[i];
     return node;
   }
   function applyPatches(mount, patches) {
-    const touched = /* @__PURE__ */ new Set();
-    if (patches.length === 0) return { touched };
-    const targets = patches.map((p) => {
-      const node = nodeAt2(mount, p.path);
-      return p.op === "CHILDREN" ? { p, node, snapshot: Array.from(node.childNodes) } : { p, node };
-    });
-    const propNodes = [];
-    for (const { p, node } of targets) {
-      if (p.op === "TEXT") {
-        node.textContent = p.value;
-        touched.add(node);
-      }
-      if (p.op === "PROPS") {
-        if (patchProps(node, p.set, p.remove)) touched.add(node);
-        propNodes.push(node);
-      }
-    }
+    const touched = [];
     const replaced = /* @__PURE__ */ new Map();
-    for (const { p, node } of targets) {
-      if (p.op !== "REPLACE") continue;
-      const fresh = createDOM(p.value);
-      node.replaceWith(fresh);
-      replaced.set(node, fresh);
-      touched.add(fresh);
-    }
-    for (const { p, node } of targets) {
-      if (p.op !== "REMOVE") continue;
-      touched.add(node.parentNode);
-      node.remove();
-    }
-    for (const { p, node, snapshot } of targets) {
-      if (p.op === "CHILDREN") placeChildren(node, snapshot, p.plan, replaced, touched);
-    }
-    for (const node of propNodes) syncControlled(node);
-    return { touched };
-  }
-  function placeChildren(parent, snapshot, plan, replaced, touched) {
-    const nodes = plan.map((entry) => {
-      if ("create" in entry) return createDOM(entry.create);
-      const old = snapshot[entry.from];
-      return replaced.get(old) ?? old;
+    const jobs = patches.map((p) => {
+      const node = nodeAt(mount, p.path);
+      return { p, node, oldKids: p.op === "CHILDREN" ? [...node.childNodes] : null };
     });
-    for (let j = plan.length - 1; j >= 0; j--) {
-      const entry = plan[j];
-      if ("create" in entry || entry.moved) {
-        parent.insertBefore(nodes[j], nodes[j + 1] ?? null);
-        touched.add(nodes[j]);
+    const run = {
+      TEXT({ p, node }) {
+        node.textContent = p.value;
+        touched.push(node);
+      },
+      PROPS({ p, node }) {
+        for (const name of p.remove) setProp(node, name, null);
+        for (const [name, value] of Object.entries(p.set)) setProp(node, name, value);
+        const visible = p.remove.length > 0 || Object.values(p.set).some((v) => typeof v !== "function");
+        if (visible) touched.push(node);
+      },
+      REPLACE({ p, node }) {
+        const fresh = createDOM(p.value);
+        node.replaceWith(fresh);
+        replaced.set(node, fresh);
+        touched.push(fresh);
+      },
+      REMOVE({ node }) {
+        touched.push(node.parentNode);
+        node.remove();
+      },
+      // plan 의 순서대로 앞에서부터 자리를 맞춥니다. 이미 그 자리에 있는 노드는 움직이지 않습니다.
+      CHILDREN({ p, node: parent, oldKids }) {
+        p.plan.forEach((entry, j) => {
+          const child = "create" in entry ? createDOM(entry.create) : replaced.get(oldKids[entry.from]) ?? oldKids[entry.from];
+          if (parent.childNodes[j] !== child) {
+            parent.insertBefore(child, parent.childNodes[j] ?? null);
+            touched.push(child);
+          }
+        });
       }
+    };
+    for (const op of ["TEXT", "PROPS", "REPLACE", "REMOVE", "CHILDREN"]) {
+      for (const job of jobs) if (job.p.op === op) run[op](job);
     }
+    return touched;
   }
-
-  // CDH/src/app/history.js
   var StateHistory = class {
     constructor(initial) {
       this.items = [structuredClone(initial)];
       this.cursor = 0;
     }
-    // 커서 뒤의 기록은 버리고, 새 스냅샷을 끝에 붙입니다.
     push(snapshot) {
       this.items = this.items.slice(0, this.cursor + 1);
       this.items.push(structuredClone(snapshot));
@@ -675,225 +273,383 @@ ${pad}</${v.type}>`;
       return structuredClone(this.items[this.cursor]);
     }
   };
+  var childDepth = 0;
+  function expand(node) {
+    if (node === null || node === void 0 || typeof node === "boolean") return "";
+    if (typeof node === "number") return String(node);
+    if (typeof node === "string") return node;
+    if (typeof node.type === "function") {
+      const { key, ...props } = node.props;
+      childDepth++;
+      let out;
+      try {
+        out = expand(node.type({ ...props, children: node.children }));
+      } finally {
+        childDepth--;
+      }
+      if (key !== void 0 && typeof out === "object") out.props = { ...out.props, key };
+      return out;
+    }
+    return { type: node.type, props: node.props, children: node.children.map(expand) };
+  }
+  var current = null;
+  var FunctionComponent = class {
+    // fn: 루트 함수형 컴포넌트 (props) => VNode.   Hook 은 이 루트에서만 쓸 수 있습니다.
+    // options.batch: true 면 같은 틱의 setState 여러 번을 모아 렌더 1번만 합니다 (선택 과제).
+    // options.onCommit({ patches, touched, tree, isMount }): 화면에 반영한 직후 부름 (데모의 디버그 표시용).
+    constructor(fn, { props = {}, batch = true, onCommit } = {}) {
+      this.fn = fn;
+      this.props = props;
+      this.batch = batch;
+      this.onCommit = onCommit;
+      this.hooks = [];
+      this.index = 0;
+      this.effects = [];
+      this.tree = null;
+      this.container = null;
+      this.mounted = false;
+      this.rendering = false;
+      this.queued = false;
+    }
+    // 처음 렌더: container 안에 통째로 그립니다.
+    mount(container) {
+      this.container = container;
+      this.mounted = true;
+      this.update();
+      return this;
+    }
+    // 다시 렌더: 새 Virtual DOM → Diff → Patch (Phase 1 연결 지점)
+    update() {
+      this.queued = false;
+      this.index = 0;
+      this.effects = [];
+      current = this;
+      this.rendering = true;
+      let tree;
+      try {
+        tree = expand(this.fn(this.props));
+      } finally {
+        current = null;
+        this.rendering = false;
+      }
+      const isMount = this.tree === null;
+      let patches = [];
+      let touched = [];
+      if (isMount) {
+        this.container.replaceChildren(createDOM(tree));
+      } else {
+        patches = diff(this.tree, tree);
+        touched = applyPatches(this.container, patches);
+      }
+      this.tree = tree;
+      if (this.onCommit) this.onCommit({ patches, touched, tree, isMount });
+      const effects = this.effects;
+      for (const runEffect of effects) runEffect();
+    }
+    // setState 가 부릅니다: "상태가 바뀌었으니 다시 그려 주세요".
+    scheduleUpdate() {
+      if (!this.mounted) return;
+      if (this.rendering) throw new Error("\uB80C\uB354 \uC911\uC5D0\uB294 setState \uB97C \uBD80\uB97C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC774\uBCA4\uD2B8\uB098 useEffect \uC548\uC5D0\uC11C \uBD80\uB974\uC138\uC694.");
+      if (!this.batch) return this.update();
+      if (this.queued) return;
+      this.queued = true;
+      queueMicrotask(() => this.queued && this.mounted && this.update());
+    }
+    // 컴포넌트 제거: 모든 useEffect 의 정리(cleanup) 함수를 실행하고 화면을 비웁니다.
+    unmount() {
+      if (!this.mounted) return;
+      this.mounted = false;
+      this.queued = false;
+      for (const slot of this.hooks) if (typeof slot?.cleanup === "function") slot.cleanup();
+      this.container.replaceChildren();
+      this.tree = null;
+    }
+  };
+  function useSlot(hookName) {
+    if (childDepth > 0) {
+      throw new Error(`${hookName}: Hook \uC740 \uB8E8\uD2B8 \uCEF4\uD3EC\uB10C\uD2B8\uC5D0\uC11C\uB9CC \uC4F8 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC790\uC2DD\uC740 props \uB9CC \uBC1B\uC73C\uC138\uC694 (Lifting State Up).`);
+    }
+    if (!current) throw new Error(`${hookName}: Hook \uC740 \uB8E8\uD2B8 FunctionComponent \uB97C \uB80C\uB354\uD558\uB294 \uB3D9\uC548\uC5D0\uB9CC \uBD80\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.`);
+    return [current, current.index++];
+  }
+  function depsChanged(prev, next) {
+    if (!next || !prev) return true;
+    return prev.length !== next.length || next.some((d, i) => !Object.is(d, prev[i]));
+  }
+  function useState(initial) {
+    const [c, i] = useSlot("useState");
+    if (!c.hooks[i]) {
+      const slot = { value: initial };
+      slot.set = (next) => {
+        const value = typeof next === "function" ? next(slot.value) : next;
+        if (Object.is(value, slot.value)) return;
+        slot.value = value;
+        c.scheduleUpdate();
+      };
+      c.hooks[i] = slot;
+    }
+    return [c.hooks[i].value, c.hooks[i].set];
+  }
+  function useEffect(effect, deps) {
+    const [c, i] = useSlot("useEffect");
+    const slot = c.hooks[i] ?? (c.hooks[i] = { deps: void 0, cleanup: void 0, ran: false });
+    if (slot.ran && !depsChanged(slot.deps, deps)) return;
+    c.effects.push(() => {
+      if (typeof slot.cleanup === "function") slot.cleanup();
+      const result = effect();
+      slot.cleanup = typeof result === "function" ? result : void 0;
+      slot.deps = deps;
+      slot.ran = true;
+    });
+  }
+  function useMemo(compute, deps) {
+    const [c, i] = useSlot("useMemo");
+    const slot = c.hooks[i];
+    if (slot && !depsChanged(slot.deps, deps)) return slot.value;
+    c.hooks[i] = { deps, value: compute() };
+    return c.hooks[i].value;
+  }
 
-  // CDH/src/app/app.js
-  var TEXT_NODE2 = 3;
-  function initApp(doc = document) {
+  // CDH/src/demo-phase1.js
+  function describePatch(p) {
+    const where = p.path.length ? `[${p.path.join(", ")}]` : "\uB8E8\uD2B8";
+    const label = (v) => typeof v === "string" ? `"${v}"` : `<${v.type}>`;
+    if (p.op === "TEXT") return `${where} \uAE00\uC790 \u2192 "${p.value}"`;
+    if (p.op === "PROPS") {
+      const parts = [...Object.keys(p.set), ...p.remove.map((k) => `${k} \uC81C\uAC70`)];
+      return `${where} \uC18D\uC131: ${parts.join(", ")}`;
+    }
+    if (p.op === "REPLACE") return `${where} \u2192 ${label(p.value)} \uB85C \uAD50\uCCB4`;
+    if (p.op === "REMOVE") return `${where} \uC0AD\uC81C`;
+    const creates = p.plan.filter((e) => "create" in e).length;
+    return `${where} \uC790\uC2DD \uBC30\uCE58 (\uC0C8\uB85C \uB9CC\uB4E6 ${creates}\uAC1C)`;
+  }
+  function flash(touched) {
+    for (const node of touched) {
+      const el = node.nodeType === 3 ? node.parentElement : node;
+      if (el && el.animate) el.animate([{ backgroundColor: "#ffe58a" }, { backgroundColor: "transparent" }], 900);
+    }
+  }
+  function initPhase1(doc = document) {
     const $ = (id) => doc.getElementById(id);
     const actual = $("actual");
     const pane = $("test-pane");
-    const code = $("test-code");
     const btnPatch = $("btn-patch");
     const btnBack = $("btn-back");
     const btnForward = $("btn-forward");
-    const logEl = $("log");
-    const dirtyEl = $("dirty");
-    const historyView = $("history-view");
-    const patchSummary = $("patch-summary");
-    const patchList = $("patch-list");
-    const log = (msg) => {
-      logEl.textContent = msg;
-    };
-    let dirty = 0;
-    function showDirty() {
-      dirtyEl.textContent = dirty > 0 ? `\uBCC0\uACBD \uAC10\uC9C0: ${dirty}\uAC74 (Patch \uB85C \uC2E4\uC81C \uC601\uC5ED\uC5D0 \uBC18\uC601)` : "\uBCC0\uACBD \uC5C6\uC74C";
-      btnPatch.classList.toggle("attention", dirty > 0);
-    }
-    const Observer = doc.defaultView.MutationObserver;
-    const observer = new Observer((records) => {
-      dirty += records.length;
-      showDirty();
-    });
-    observer.observe(pane, { subtree: true, childList: true, attributes: true, characterData: true });
-    stripBlankNodes(actual);
-    const root = actual.firstElementChild;
-    if (!root) {
-      log("\uC2E4\uC81C \uC601\uC5ED\uC5D0 \uC0D8\uD50C HTML \uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
-      return null;
-    }
-    let current = domToVNode(root);
-    const history = new StateHistory(current);
-    function renderTest(v) {
-      pane.replaceChildren(createDOM(v));
-      code.value = prettyHTML(v);
+    removeBlankNodes(actual);
+    let current2 = domToVNode(actual.firstElementChild);
+    const history = new StateHistory(current2);
+    function renderTest(vnode) {
+      pane.replaceChildren(createDOM(vnode));
       observer.takeRecords();
       dirty = 0;
-      showDirty();
+      showStatus();
     }
-    renderTest(current);
-    renderHistory();
-    log(`\uB85C\uB4DC: \uC2E4\uC81C \uC601\uC5ED DOM \u2192 Virtual DOM \uBCC0\uD658 (\uB178\uB4DC ${countNodes(current)}\uAC1C), \uD14C\uC2A4\uD2B8 \uC601\uC5ED \uB80C\uB354\uB9C1 \uC644\uB8CC.`);
-    function readPane() {
-      const el = pane.firstElementChild;
-      return el ? domToVNode(el) : null;
+    let dirty = 0;
+    const observer = new doc.defaultView.MutationObserver((records) => {
+      dirty += records.length;
+      showStatus();
+    });
+    observer.observe(pane, { subtree: true, childList: true, attributes: true, characterData: true });
+    function showStatus() {
+      $("p1-dirty").textContent = dirty > 0 ? `\uBCC0\uACBD \uAC10\uC9C0: ${dirty}\uAC74 (Patch \uB85C \uC2E4\uC81C \uC601\uC5ED\uC5D0 \uBC18\uC601)` : "\uBCC0\uACBD \uC5C6\uC74C";
+      btnBack.disabled = history.cursor === 0;
+      btnForward.disabled = history.cursor === history.items.length - 1;
+      $("p1-history").textContent = `State History: ${history.cursor + 1} / ${history.items.length}`;
     }
-    pane.addEventListener("input", () => {
-      const v = readPane();
-      if (v) code.value = prettyHTML(v);
-    });
-    code.addEventListener("input", () => {
-      const v = parseHTML(code.value);
-      if (!v) {
-        log("HTML \uC5D0 \uB8E8\uD2B8 \uC694\uC18C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.");
-        return;
-      }
-      pane.replaceChildren(createDOM(v));
-    });
     function commit(next) {
-      const patches = diff(current, next);
-      const lines = describePatches(current, patches);
-      const { touched } = applyPatches(actual, patches);
-      const total = countNodes(next);
-      current = next;
-      renderTest(current);
-      showPatches(lines, touched.size, total);
-      flash(touched);
-      return lines.length;
-    }
-    function showPatches(lines, touchedCount, total) {
-      patchList.replaceChildren(
-        ...lines.map((l) => {
+      const patches = diff(current2, next);
+      const touched = applyPatches(actual, patches);
+      current2 = next;
+      renderTest(current2);
+      $("p1-patches").replaceChildren(
+        ...(patches.length ? patches : [null]).map((p) => {
           const li = doc.createElement("li");
-          const tag = doc.createElement("span");
-          tag.className = `op op-${l.op.toLowerCase()}`;
-          tag.textContent = l.op;
-          li.append(tag, " ", l.text);
+          li.textContent = p ? `${p.op}  ${describePatch(p)}` : "(\uBC14\uB010 \uAC83\uC774 \uC5C6\uC5B4\uC694)";
           return li;
         })
       );
-      patchSummary.textContent = lines.length === 0 ? "\uD328\uCE58 \uC5C6\uC74C" : `\uD328\uCE58 ${lines.length}\uAC1C \xB7 \uAC74\uB4DC\uB9B0 DOM \uB178\uB4DC ${touchedCount}\uAC1C (\uC804\uCCB4 \uB2E4\uC2DC \uADF8\uB838\uB2E4\uBA74 ${total}\uAC1C)`;
+      flash(touched);
+      return patches.length;
     }
-    function flash(touched) {
-      const color = doc.defaultView.getComputedStyle(doc.documentElement).getPropertyValue("--flash").trim() || "#ffe58a";
-      for (const node of touched) {
-        const el = node.nodeType === TEXT_NODE2 ? node.parentElement : node;
-        if (el && typeof el.animate === "function") {
-          el.animate([{ backgroundColor: color }, { backgroundColor: "transparent" }], 900);
-        }
-      }
-    }
-    function renderHistory() {
-      historyView.replaceChildren(
-        ...history.items.map((_, i) => {
-          const chip = doc.createElement("span");
-          chip.className = "chip" + (i === history.cursor ? " on" : "");
-          chip.textContent = `#${i + 1}`;
-          return chip;
-        })
-      );
-      btnBack.disabled = history.cursor === 0;
-      btnForward.disabled = history.cursor === history.items.length - 1;
-    }
+    renderTest(current2);
     btnPatch.addEventListener("click", () => {
-      const next = readPane();
-      if (!next) {
-        log("\uD14C\uC2A4\uD2B8 \uC601\uC5ED\uC5D0 \uB8E8\uD2B8 \uC694\uC18C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.");
-        return;
-      }
-      const count = commit(next);
-      if (count === 0) {
-        log("\uBCC0\uACBD \uC5C6\uC74C. \uAE30\uB85D\uC740 \uB0A8\uAE30\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
-        return;
-      }
-      history.push(next);
-      renderHistory();
-      log(`Patch: \uD328\uCE58 ${count}\uAC1C\uB97C \uC2E4\uC81C \uC601\uC5ED\uC5D0 \uBC18\uC601\uD558\uACE0 \uAE30\uB85D #${history.cursor + 1} \uB85C \uC800\uC7A5.`);
+      const el = pane.firstElementChild;
+      if (!el) return;
+      const next = domToVNode(el);
+      if (commit(next) > 0) history.push(next);
+      showStatus();
     });
-    btnBack.addEventListener("click", () => {
-      if (history.cursor === 0) return;
-      const count = commit(history.back());
-      renderHistory();
-      log(`\uB4A4\uB85C\uAC00\uAE30: \uAE30\uB85D #${history.cursor + 1} \uB85C \uC774\uB3D9 (\uD328\uCE58 ${count}\uAC1C).`);
-    });
-    btnForward.addEventListener("click", () => {
-      if (history.cursor === history.items.length - 1) return;
-      const count = commit(history.forward());
-      renderHistory();
-      log(`\uC55E\uC73C\uB85C\uAC00\uAE30: \uAE30\uB85D #${history.cursor + 1} \uB85C \uC774\uB3D9 (\uD328\uCE58 ${count}\uAC1C).`);
-    });
-    let seq = 0;
-    function firstText(node) {
-      for (const c of node.childNodes) {
-        if (c.nodeType === TEXT_NODE2 && c.nodeValue.trim() !== "") return c;
-        if (c.nodeType === 1) {
-          const found = firstText(c);
-          if (found) return found;
-        }
-      }
-      return null;
-    }
-    const edits = {
-      // 텍스트 변경
-      text(el) {
-        const t = firstText(el.querySelector("li") ?? el);
-        if (t) t.nodeValue += " (\uC218\uC815)";
-      },
-      // 속성 변경
-      attr(el) {
-        el.classList.toggle("highlight");
-      },
-      // 태그(타입) 변경: h2 ↔ h3
-      tag(el) {
-        const h = el.querySelector("h2, h3");
-        if (!h) return;
-        const to = doc.createElement(h.tagName === "H2" ? "h3" : "h2");
-        for (const a of h.attributes) to.setAttribute(a.name, a.value);
-        to.append(...h.childNodes);
-        h.replaceWith(to);
-      },
-      // 자식 추가
-      add(el) {
-        const ul = el.querySelector("ul");
-        if (!ul) return;
-        seq += 1;
-        const li = doc.createElement("li");
-        li.setAttribute("key", `n${seq}`);
-        li.textContent = `\uC0C8 \uD56D\uBAA9 ${seq}`;
-        ul.appendChild(li);
-      },
-      // 자식 삭제
-      remove(el) {
-        el.querySelector("ul")?.lastElementChild?.remove();
-      },
-      // 순서 뒤집기 (key 가 있으면 이동으로 처리)
-      reorder(el) {
-        const ul = el.querySelector("ul");
-        if (!ul) return;
-        [...ul.children].reverse().forEach((li) => ul.appendChild(li));
-      }
-    };
-    doc.querySelectorAll("[data-edit]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const el = pane.firstElementChild;
-        if (!el) return;
-        edits[btn.dataset.edit]?.(el);
-        const v = readPane();
-        if (v) code.value = prettyHTML(v);
-      });
-    });
-    return {
-      getCurrent: () => current,
-      history,
-      observer
-    };
+    btnBack.addEventListener("click", () => commit(history.back()));
+    btnForward.addEventListener("click", () => commit(history.forward()));
+    return { history, getCurrent: () => current2 };
   }
 
-  // CDH/src/app/main.js
-  initApp(document);
+  // CDH/src/demo-phase2.js
+  function TodoForm({ text, onTextChange, onAdd }) {
+    return h(
+      "form",
+      { onSubmit: (e) => (e.preventDefault(), onAdd()) },
+      h("input", { type: "text", placeholder: "\uD560 \uC77C\uC744 \uC785\uB825\uD558\uACE0 Enter", value: text, onInput: (e) => onTextChange(e.target.value) }),
+      h("button", { type: "submit", disabled: text.trim() === "" }, "\uCD94\uAC00")
+    );
+  }
+  function FilterBar({ filter, counts, onFilter }) {
+    const labels = { all: "\uC804\uCCB4", active: "\uC9C4\uD589 \uC911", done: "\uC644\uB8CC" };
+    return h(
+      "div",
+      { className: "filters" },
+      Object.entries(labels).map(
+        ([value, label]) => h("button", { key: value, type: "button", className: filter === value ? "on" : "", onClick: () => onFilter(value) }, `${label} ${counts[value]}`)
+      )
+    );
+  }
+  function TodoItem({ todo, onToggle, onRemove }) {
+    return h(
+      "li",
+      { className: todo.done ? "done" : "" },
+      h("label", null, h("input", { type: "checkbox", checked: todo.done, onChange: () => onToggle(todo.id) }), h("span", null, todo.text)),
+      h("button", { type: "button", className: "x", onClick: () => onRemove(todo.id) }, "\xD7")
+    );
+  }
+  function TodoList({ todos, onToggle, onRemove }) {
+    if (todos.length === 0) return h("p", { className: "empty" }, "\uBCF4\uC5EC \uC904 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.");
+    return h("ul", null, todos.map((todo) => h(TodoItem, { key: todo.id, todo, onToggle, onRemove })));
+  }
+  function Timer({ seconds, running, onToggle, onReset }) {
+    const pad = (n) => String(n).padStart(2, "0");
+    return h(
+      "div",
+      { className: "row" },
+      h("strong", null, `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`),
+      h("button", { type: "button", onClick: onToggle }, running ? "\uC77C\uC2DC\uC815\uC9C0" : "\uC2DC\uC791"),
+      h("button", { type: "button", onClick: onReset }, "\uCD08\uAE30\uD654")
+    );
+  }
+  function BurstDemo({ clicks, onBurst }) {
+    return h("div", { className: "row" }, h("span", null, `\uC5F0\uC18D setState \uB370\uBAA8: ${clicks}`), h("button", { type: "button", onClick: onBurst }, "+1 \uC744 3\uBC88 \uD638\uCD9C"));
+  }
+  function TodoApp({ log = () => {
+  }, onMemo = () => {
+  } }) {
+    const [todos, setTodos] = useState([
+      { id: 1, text: "Phase 1: Virtual DOM \xB7 Diff \xB7 Patch", done: true },
+      { id: 2, text: "Phase 2: useState / useEffect / useMemo", done: false }
+    ]);
+    const [text, setText] = useState("");
+    const [filter, setFilter] = useState("all");
+    const [seconds, setSeconds] = useState(0);
+    const [running, setRunning] = useState(false);
+    const [clicks, setClicks] = useState(0);
+    const visible = useMemo(() => {
+      onMemo("\uBAA9\uB85D \uACC4\uC0B0");
+      return todos.filter((t) => filter === "all" || filter === "done" === t.done);
+    }, [todos, filter]);
+    const counts = useMemo(() => {
+      const done = todos.filter((t) => t.done).length;
+      return { all: todos.length, done, active: todos.length - done };
+    }, [todos]);
+    useEffect(() => {
+      document.title = `(${counts.active}) \uD560 \uC77C \xB7 Mini React`;
+      log(`\uBB38\uC11C \uC81C\uBAA9 \uAC31\uC2E0 (\uB0A8\uC740 \uC77C ${counts.active})`);
+    }, [counts.active]);
+    useEffect(() => {
+      if (!running) return void 0;
+      log("\uD0C0\uC774\uBA38 \uC2DC\uC791");
+      const id = setInterval(() => setSeconds((s) => s + 1), 1e3);
+      return () => {
+        clearInterval(id);
+        log("\uD0C0\uC774\uBA38 \uC815\uB9AC(cleanup)");
+      };
+    }, [running]);
+    const add = () => {
+      const value = text.trim();
+      if (!value) return;
+      setTodos((prev) => [...prev, { id: Math.max(0, ...prev.map((t) => t.id)) + 1, text: value, done: false }]);
+      setText("");
+    };
+    const toggle = (id) => setTodos((prev) => prev.map((t) => t.id === id ? { ...t, done: !t.done } : t));
+    const remove = (id) => setTodos((prev) => prev.filter((t) => t.id !== id));
+    const burst = () => {
+      setClicks((c) => c + 1);
+      setClicks((c) => c + 1);
+      setClicks((c) => c + 1);
+    };
+    return h(
+      "section",
+      { className: "todo-app" },
+      h(TodoForm, { text, onTextChange: setText, onAdd: add }),
+      h(FilterBar, { filter, counts, onFilter: setFilter }),
+      h(TodoList, { todos: visible, onToggle: toggle, onRemove: remove }),
+      h(Timer, {
+        seconds,
+        running,
+        onToggle: () => setRunning((r) => !r),
+        onReset: () => {
+          setRunning(false);
+          setSeconds(0);
+        }
+      }),
+      h(BurstDemo, { clicks, onBurst: burst })
+    );
+  }
+  function describeHook(slot) {
+    if ("set" in slot) return `state  ${JSON.stringify(slot.value)}`;
+    if ("ran" in slot) return `effect deps=${JSON.stringify(slot.deps ?? null)}`;
+    return `memo   ${JSON.stringify(slot.value)}`;
+  }
+  function initPhase2(doc = document) {
+    const $ = (id) => doc.getElementById(id);
+    const logs = [];
+    const memoRuns = {};
+    let renders = 0;
+    const component = new FunctionComponent(TodoApp, {
+      props: {
+        log(msg) {
+          logs.unshift(`#${renders} ${msg}`);
+          $("p2-log").textContent = logs.slice(0, 8).join("\n");
+        },
+        onMemo(name) {
+          memoRuns[name] = (memoRuns[name] ?? 0) + 1;
+          $("p2-memo").textContent = Object.entries(memoRuns).map(([k, v]) => `${k} ${v}\uD68C`).join(" \xB7 ");
+        }
+      },
+      // 화면에 반영한 직후: 이번에 Phase 1 의 diff 가 만든 패치를 보여 줍니다
+      onCommit({ patches, touched, isMount }) {
+        renders++;
+        $("p2-renders").textContent = String(renders);
+        const dom = patches.filter((p) => !(p.op === "PROPS" && Object.values(p.set).every((v) => typeof v === "function") && !p.remove.length));
+        $("p2-summary").textContent = isMount ? "\uCC98\uC74C \uB80C\uB354: \uC804\uCCB4\uB97C \uB9CC\uB4E4\uC5C8\uC5B4\uC694." : `\uD328\uCE58 ${dom.length}\uAC74, \uAC74\uB4DC\uB9B0 DOM ${touched.length}\uACF3 (\uC774\uBCA4\uD2B8 \uD578\uB4E4\uB7EC \uAD50\uCCB4 ${patches.length - dom.length}\uAC74\uC740 \uD654\uBA74 \uBCC0\uD654 \uC5C6\uC74C)`;
+        $("p2-patches").textContent = dom.map((p) => `${p.op}  [${p.path.join(",")}]`).join("\n");
+        $("p2-hooks").textContent = component.hooks.map((slot, i) => `${i}  ${describeHook(slot)}`).join("\n");
+        if (!isMount) flash(touched);
+      }
+    });
+    component.mount($("app"));
+    const batch = $("batch-toggle");
+    batch.checked = component.batch;
+    batch.addEventListener("change", () => component.batch = batch.checked);
+    return component;
+  }
+
+  // CDH/src/main.js
+  initPhase1(document);
+  initPhase2(document);
   window.__miniReactBooted = true;
 })();
 
 </script>
 <script>
-  // 모듈 스크립트가 실행되지 않으면(file:// 로 열었거나 dev 서버가 꺼진 경우) 버튼이 죽어 있으므로 이유를 알려 줍니다.
+  // 모듈 스크립트가 실행되지 않으면(file:// 로 열었거나 dev 서버가 꺼진 경우) 이유를 알려 줍니다.
   window.addEventListener('load', function () {
     setTimeout(function () {
       if (window.__miniReactBooted) return;
       var box = document.createElement('p');
       box.style.cssText = 'background:#fde8e4;color:#7a1f10;padding:10px 14px;border-radius:8px;';
       box.textContent = location.protocol === 'file:'
-        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. 컨테이너에서 npm run dev 후 http://localhost:5173/CDH/index.html 로 접속하세요.'
-        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하고, dev 서버를 재시작한 뒤 Ctrl+Shift+R 로 새로고침하세요.';
+        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. standalone.html 을 열거나 npm run dev 후 http://localhost:5173/CDH/index.html 로 접속하세요.'
+        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하세요.';
       document.querySelector('main').prepend(box);
     }, 500);
   });
