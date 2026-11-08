@@ -84,17 +84,35 @@ it('pairs unkeyed children and text in appearance order among reordered keys (se
   tree(result, next);
 });
 
-it('does not search past a mismatched first unused unkeyed type (section 7)', () => {
-  const old = h('div', null, h('span', null, 'first'), h('i', { key: 'k' }), h('em', null, 'later'));
-  const next = h('div', null, h('em', null, 'created'), h('i', { key: 'k' }),
-    h('span', null, 'reused'), h('em', null, 'also reused'));
+it('pairs an unkeyed child with the first unused same-type old child (section 7)', () => {
+  const old = h('div', null, h('em', null, 'first'), h('span', null, 'removed'),
+    h('em', null, 'later'));
+  const next = h('div', null, h('em', null, 'first reused'), h('em', null, 'later reused'),
+    h('section', null, 'created'));
   const { root } = mount(old);
-  const [span, keyed, em] = root.children;
+  const [firstEm, span, laterEm] = root.children;
   const result = patch(root, diff(old, next));
-  expect(result.children[0]).not.toBe(em);
-  expect(result.children[1]).toBe(keyed);
-  expect(result.children[2]).toBe(span);
-  expect(result.children[3]).toBe(em);
+  expect(result.children[0]).toBe(firstEm);
+  expect(result.children[1]).toBe(laterEm);
+  for (const oldChild of [firstEm, span, laterEm]) {
+    expect(result.children[2]).not.toBe(oldChild);
+  }
+  expect(span.parentNode).toBeNull();
+  tree(result, next);
+});
+
+it('preserves both unkeyed spans when the middle child changes type (section 7)', () => {
+  const old = h('div', null, h('span', null, 'first'), h('p', null, 'old middle'),
+    h('span', null, 'last'));
+  const next = h('div', null, h('span', null, 'first'), h('section', null, 'new middle'),
+    h('span', null, 'last'));
+  const { root } = mount(old);
+  const [firstSpan, middle, lastSpan] = root.children;
+  const result = patch(root, diff(old, next));
+  expect(result.children[0]).toBe(firstSpan);
+  expect(result.children[1]).not.toBe(middle);
+  expect(result.children[2]).toBe(lastSpan);
+  expect(middle.parentNode).toBeNull();
   tree(result, next);
 });
 
