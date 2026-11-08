@@ -50,20 +50,22 @@ function extractKey(props) {
 }
 
 function normalizeProps(props) {
-  const attrs = {};
+  // attrs[name] = value는 이름이 "__proto__"이면 프로토타입 setter를 호출해 속성이 사라진다.
+  // 항목을 모은 뒤 Object.fromEntries로 own 속성으로 정의한다. (1.2 속성 이름 그대로)
+  const entries = [];
   for (const [name, value] of Object.entries(props)) {
     if (name === 'children' || name === 'key' || name === KEY_ATTRIBUTE) continue;
     if (typeof value === 'function') throw unsupportedError(`함수 이벤트 핸들러 (props.${name})`);
     if (value === false || value === null || value === undefined) continue;
     if (value === true) {
-      attrs[name] = '';
+      entries.push([name, '']);
     } else if (typeof value === 'object' || typeof value === 'symbol') {
       throw invalidInputError(`props.${name}의 값은 문자열로 바꿀 수 있어야 함 (받은 값: ${describe(value)})`);
     } else {
-      attrs[name] = String(value);
+      entries.push([name, String(value)]);
     }
   }
-  return attrs;
+  return Object.fromEntries(entries);
 }
 
 /** 2.3 children 표에 따라 자식을 문자열 조각 또는 VNode로 모은다. 배열은 깊이에 상관없이 평탄화. */

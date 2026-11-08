@@ -55,11 +55,13 @@ function assertSupportedTree(element) {
  */
 function convertElement(element, insidePreserve) {
   let key = null;
-  const attrs = {};
+  // "__proto__" 같은 이름도 own 속성으로 남도록 Object.fromEntries로 만든다. (1.2)
+  const entries = [];
   for (const attr of element.attributes) {
     if (attr.name === KEY_ATTRIBUTE) key = attr.value;
-    else attrs[attr.name] = attr.value;
+    else entries.push([attr.name, attr.value]);
   }
+  const attrs = Object.fromEntries(entries);
 
   const preserve = insidePreserve || WHITESPACE_PRESERVE_TAGS.includes(element.localName);
   const children = convertChildren(element, preserve);
