@@ -41,16 +41,58 @@
       <div id="out-check-all"></div>
     </section>
 
-    <section class="todo">
-      <h2>2. diff</h2>
-      <p class="muted">다음 단계에서 구현 (docs/contracts.md 5장 Patch 확정 후)</p>
-      <button disabled>diff</button>
+    <section>
+      <h2>2. diff (before → after)</h2>
+      <label for="diff-case-select">케이스</label>
+      <select id="diff-case-select"></select>
+      <div class="row">
+        <div>
+          <label for="before-input">before HTML</label>
+          <textarea id="before-input" rows="5" spellcheck="false"></textarea>
+        </div>
+        <div>
+          <label for="after-input">after HTML</label>
+          <textarea id="after-input" rows="5" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="buttons">
+        <button id="btn-mount">before 렌더 (초기화)</button>
+        <button id="btn-diff">diff</button>
+        <button id="btn-patch">patch 적용</button>
+      </div>
+      <p class="muted">
+        순서: before 렌더 → diff → patch 적용. 아래 "실제 DOM"은 before로 한 번 그린 DOM이며, patch는 이 DOM을 새로 만들지 않고
+        제자리에서 고친다. patch 후에는 after가 새 기준(before)이 되므로 after를 고쳐 diff → patch를 이어서 할 수 있다.
+      </p>
+      <div id="diff-status" class="status"></div>
+      <div class="row">
+        <div>
+          <h3>실제 DOM (before로 마운트, patch로 갱신)</h3>
+          <div id="out-live" class="box"></div>
+          <pre id="out-live-html" class="panel"></pre>
+        </div>
+        <div>
+          <h3>Patch 목록 (diff 결과)</h3>
+          <pre id="out-patches" class="panel"></pre>
+        </div>
+      </div>
     </section>
 
-    <section class="todo">
-      <h2>3. patch 적용</h2>
-      <p class="muted">다음 단계에서 구현 (docs/contracts.md 5장 Patch 확정 후)</p>
-      <button disabled>patch 적용</button>
+    <section>
+      <h2>3. patch 적용 결과</h2>
+      <div id="patch-status" class="status"></div>
+      <div class="row">
+        <div>
+          <h3>patch 전 (before 스냅샷)</h3>
+          <div id="out-before-snapshot" class="box"></div>
+          <pre id="out-before-html" class="panel"></pre>
+        </div>
+        <div>
+          <h3>기대값: render(after)</h3>
+          <div id="out-expected" class="box"></div>
+          <pre id="out-expected-html" class="panel"></pre>
+        </div>
+      </div>
     </section>
 
     <script type="module" src="./main.js"></script>
