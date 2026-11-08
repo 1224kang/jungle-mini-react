@@ -34,7 +34,11 @@ function normalizeType(type) {
   if (typeof type !== 'string' || type === '') {
     throw invalidInputError(`h()의 type은 비어 있지 않은 문자열이어야 함 (받은 값: ${describe(type)})`);
   }
-  return type.toLowerCase();
+  const normalized = type.toLowerCase();
+  if (normalized === TEXT_TYPE) {
+    throw invalidInputError(`h()는 요소만 만듦. 텍스트 예약 타입 "${type}"은 쓸 수 없음 (텍스트는 문자열 자식으로 전달)`);
+  }
+  return normalized;
 }
 
 function extractKey(props) {
