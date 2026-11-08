@@ -2,7 +2,7 @@ import { invalidInputError } from '../shared/index.js';
 
 // 요소별로 등록한 이벤트 핸들러 기록: element -> { 이벤트이름: 함수 }
 // 왜 WeakMap: 핸들러 교체/제거 때 "이전 함수"를 알아야 removeEventListener를 부를 수 있다.
-// VNode나 DOM에 참조를 붙이지 않고(계약 5절), 요소가 사라지면 기록도 함께 GC된다.
+// VNode나 DOM에 참조를 붙이지 않고(docs/diff-patch.md 2장: VNode는 순수 데이터), 요소가 사라지면 기록도 함께 GC된다.
 const handlers = new WeakMap();
 
 /** 이벤트 이름 규칙인가? (on으로 시작). 값이 함수인지는 따로 본다. */
@@ -23,7 +23,7 @@ function clearHandler(el, name) {
 }
 
 /**
- * 속성 또는 이벤트 핸들러 하나를 요소에 적용한다. (docs/diff-patch-contract.md 6절 이벤트)
+ * 속성 또는 이벤트 핸들러 하나를 요소에 적용한다. (docs/diff-patch.md 3장 이벤트)
  * - 문자열: setAttribute. 이전에 같은 이벤트의 함수 핸들러가 있었으면 먼저 뗀다.
  * - on* + 함수: addEventListener. 이전 함수가 있으면 먼저 뗀다(같은 함수면 아무것도 안 함).
  *   이전에 같은 이름의 문자열 속성이 있었으면 지운다. 함수는 setAttribute로 쓰지 않는다.

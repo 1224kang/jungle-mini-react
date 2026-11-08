@@ -3,7 +3,7 @@ import { setProp, removeProp } from '../dom/props.js';
 import { PATCH_TYPE, invalidInputError } from '../shared/index.js';
 
 /**
- * Patch 목록을 실제 DOM에 반영한다. (docs/diff-patch-contract.md 5, 11절)
+ * Patch 목록을 실제 DOM에 반영한다. (docs/contracts.md 5장 규칙, docs/diff-patch.md 2장)
  * 두 단계로 나눈다.
  *  A. 해석: DOM을 바꾸기 전에 모든 path / before.old를 DOM 노드 참조로 바꾼다.
  *     이유: 이동·삭제로 인덱스가 바뀌어도 참조는 흔들리지 않고, 잘못된 patch는 부분 적용 없이 거부된다.

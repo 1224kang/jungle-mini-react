@@ -2,7 +2,7 @@ import { TEXT_TYPE, PATCH_TYPE, getAttributes, invalidInputError } from '../shar
 
 /**
  * 두 VNode 트리를 비교해 Patch 목록을 계산한다. 순수 함수이며 외부 상태에 의존하지 않는다.
- * path는 모두 old 트리 좌표다. (docs/diff-patch-contract.md 5절)
+ * path는 모두 old 트리 좌표다. (docs/contracts.md 5장)
  * @param {object} oldVNode 이전 VNode
  * @param {object} newVNode 새 VNode
  * @returns {object[]} Patch[] (docs/contracts.md 참조)
@@ -66,7 +66,7 @@ function diffProps(oldNode, newNode, path, patches) {
 }
 
 /**
- * keyed 자식 비교 (React식 lastPlacedIndex). docs/diff-patch-contract.md 7절.
+ * keyed 자식 비교 (React식 lastPlacedIndex). docs/diff-patch.md 4장.
  * 시간 O(n) (Map 조회 + 한 번 순회), 추가 공간 O(n).
  *
  * 1) 짝짓기: 새 자식마다 재사용할 old 자식을 찾는다.
@@ -74,7 +74,7 @@ function diffProps(oldNode, newNode, path, patches) {
  *    - 중복 key의 2번째 이후, key 없는 자식, 텍스트는 "key 없는 old 목록"에서 아직 안 쓴 첫 번째 중 type(과 key)이 같은 것과 짝짓는다.
  *      type과 key가 모두 같을 때만 짝이다(key는 PROPS 대상이 아니라 다르면 DOM을 재사용할 수 없다).
  * 2) lastPlacedIndex: 재사용된 old 인덱스가 지금까지 본 최대값보다 작으면 MOVE, 아니면 최대값 갱신.
- * 3) 출력 순서(계약 5절): 제거 -> 배치(뒤에서 앞으로) -> 재사용 자식 재귀.
+ * 3) 출력 순서(docs/contracts.md 5장 규칙): 제거 -> 배치(뒤에서 앞으로) -> 재사용 자식 재귀.
  *    왜 뒤에서부터 + 다음 형제를 기준점으로: 새 순서의 뒤쪽은 이미 최종 위치에 있으므로,
  *    "바로 다음 새 형제 앞"에 끼우면 그 자리가 곧 최종 위치다. 앞쪽 인덱스가 아직 어긋나 있어도 영향이 없다.
  *    (이동하지 않는 자식들은 old 순서가 증가하므로 이미 서로 상대 순서가 맞다.)
@@ -122,8 +122,8 @@ function diffChildren(oldChildren, newChildren, parentPath, patches) {
     }
   }
 
-  // 같은 인덱스에서 서로 짝이 없는 old/new는 REPLACE 하나로 처리한다(phase1 계약 6절과 같은 모양).
-  // 단 같은 key + 다른 type은 7절대로 REMOVE + CREATE. 제자리 교체라서 이동 대상이 될 수 없으므로
+  // 같은 인덱스에서 서로 짝이 없는 old/new는 REPLACE 하나로 처리한다(docs/diff-patch.md 4장 세부 규칙).
+  // 단 같은 key + 다른 type은 docs/diff-patch.md 4장대로 REMOVE + CREATE. 제자리 교체라서 이동 대상이 될 수 없으므로
   // lastPlacedIndex 순서(old 인덱스가 증가하는 안정 구간)를 깨지 않는 경우에만 쓴다.
   const replaced = new Array(newChildren.length).fill(false);
   const moved = new Array(newChildren.length).fill(false);
