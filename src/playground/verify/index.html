@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VDOM Patch 검증</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <h1>Virtual DOM / Diff / Patch 검증</h1>
+      <div class="controls">
+        <button id="btn-patch" type="button">Patch</button>
+        <button id="btn-back" type="button" disabled>◀ 뒤로가기</button>
+        <button id="btn-forward" type="button" disabled>앞으로가기 ▶</button>
+        <span class="position">히스토리 <strong id="history-pos">1 / 1</strong></span>
+        <span id="consistency" class="badge">검사 전</span>
+      </div>
+      <div id="message" class="message" role="status"></div>
+    </header>
+
+    <main class="areas">
+      <section class="area">
+        <h2>실제 영역 <small>patch()만으로 갱신되는 DOM</small></h2>
+        <div id="stats" class="stats">재사용 – · 새로 만듦 – · 제거 –</div>
+        <!-- 샘플 HTML. Shadow DOM 안에 있어 페이지 CSS/ID와 격리된다. -->
+        <div id="real-host" class="stage">
+          <template shadowrootmode="open">
+            <div class="card" id="demo" style="padding: 12px; border: 1px solid #c8ccd0; border-radius: 8px">
+              <h3 class="title">할 일 목록</h3>
+              <p class="desc">텍스트, <strong>중첩 요소</strong>, <em title="title 속성">속성</em>을 확인하는 샘플입니다.</p>
+              <ul class="todo">
+                <li data-key="apple" class="item">사과 사기</li>
+                <li data-key="milk" class="item done" style="color: gray">우유 사기</li>
+                <li data-key="bread" class="item">빵 사기</li>
+              </ul>
+              <label for="memo">메모</label>
+              <input id="memo" type="text" placeholder="여기에 입력한 값이 Patch 후에도 남는지 확인" />
+              <section class="nested"><div><span>깊은</span> <span>중첩</span></div></section>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <section class="area">
+        <h2>테스트 영역 <small>HTML → VNode → render 미리보기</small></h2>
+        <label for="editor" class="sr-only">HTML 편집기</label>
+        <textarea id="editor" spellcheck="false" rows="16"></textarea>
+        <div id="parse-status" class="parse-status"></div>
+        <div id="preview-host" class="stage"></div>
+      </section>
+    </main>
+
+    <section class="log">
+      <h2>Patch 로그 <small id="log-summary"></small></h2>
+      <p class="muted">
+        # = diff가 만든 순서 = patch 실행 순서. patch()는 실행 전에 모든 경로를 old 트리 기준으로 한꺼번에 해석하므로,
+        경로는 이전 VNode 좌표입니다(앞선 REMOVE/MOVE 이후의 실제 DOM 인덱스와 다를 수 있음).
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>종류</th><th>경로(old)</th><th>대상</th><th>이전 값</th><th>새 값</th><th>비고</th></tr>
+          </thead>
+          <tbody id="log-body"><tr><td colspan="7" class="muted">아직 Patch하지 않았습니다.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
