@@ -245,3 +245,4 @@ h('ul', { class: 'list', key: 1 }, [h('li', null, 'A'), null, false], 0, 'a', 'b
 - `diff`는 순수 함수이며 DOM에 의존하지 않습니다. 입력은 VNode 두 개, 출력은 위 형식의 객체뿐입니다.
 - `PROPS`는 HTML 속성과 `on*` 함수 핸들러만 다룹니다. `children`은 포함하지 않습니다 (`getAttributes`로 추려서 비교). `key`는 props에 없으므로 `PROPS`의 대상이 아닙니다.
 - 함수 핸들러(`on*` + 함수)는 `addEventListener`로 등록하고, 교체·제거 시 이전 리스너를 먼저 뗍니다. `setAttribute`로 쓰지 않습니다.
+- **keyed children (Phase 2)**: 자식은 `type`+`key`로 재사용하고 React식 lastPlacedIndex로 이동 여부를 정합니다. 배치(`MOVE`/`CREATE`)는 새 순서의 뒤에서부터 내며 `before`는 바로 다음 새 형제입니다. 중복 key의 두 번째 이후와 key 없는 자식은 key 없는 old 자식과 등장 순서대로 짝짓습니다. 맨 끝에 연속으로 생성되는 자식은 앞에서부터 `before: null`로 낼 수 있습니다(결과 동일).

@@ -115,7 +115,13 @@ function execute(rootDom, plan) {
   let root = rootDom;
   // CREATE가 만든 DOM 노드 (키: 부모경로+새 인덱스). before.new가 이 노드를 가리킨다.
   const createdNodes = new Map();
-  const anchorOf = (step) => (step.anchorKey !== undefined ? createdNodes.get(step.anchorKey) : step.anchor) ?? null;
+  // REPLACE된 old 노드 -> 새 노드. before.old가 가리키던 노드가 같은 실행 중에 교체되면 교체된 노드를 기준점으로 쓴다.
+  const replacedNodes = new Map();
+  const anchorOf = (step) => {
+    let node = (step.anchorKey !== undefined ? createdNodes.get(step.anchorKey) : step.anchor) ?? null;
+    while (node && replacedNodes.has(node)) node = replacedNodes.get(node);
+    return node;
+  };
 
   for (const step of plan) {
     switch (step.type) {
@@ -131,6 +137,7 @@ function execute(rootDom, plan) {
       case PATCH_TYPE.REPLACE: {
         const node = render(step.node);
         step.target.replaceWith(node);
+        replacedNodes.set(step.target, node);
         if (step.isRoot) root = node;
         break;
       }
