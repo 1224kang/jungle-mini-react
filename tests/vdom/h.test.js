@@ -255,6 +255,10 @@ describe('h - 3장 범위 밖', () => {
     expect(() => h('button', { handler: () => {} })).toThrow(unsupported);
   });
 
+  it('6: a function prop named exactly on is unsupported', () => {
+    expect(() => h('div', { on: () => {} })).toThrow(unsupported);
+  });
+
   it('3장 on* 함수 prop은 그대로 보존한다', () => {
     const handler = () => {};
     expect(h('button', { onclick: handler }).props.onclick).toBe(handler);
