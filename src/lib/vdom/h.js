@@ -59,7 +59,12 @@ function normalizeProps(props) {
   const entries = [];
   for (const [name, value] of Object.entries(props)) {
     if (name === 'children' || name === 'key' || name === KEY_ATTRIBUTE) continue;
-    if (typeof value === 'function') throw unsupportedError(`함수 이벤트 핸들러 (props.${name})`);
+    if (typeof value === 'function') {
+      // on*의 함수는 이벤트 핸들러라 그대로 둔다. 그 밖의 함수 prop은 여전히 범위 밖. (contracts.md 3장)
+      if (!name.startsWith('on')) throw unsupportedError(`함수 이벤트 핸들러 (props.${name})`);
+      entries.push([name, value]);
+      continue;
+    }
     if (value === false || value === null || value === undefined) continue;
     if (value === true) {
       entries.push([name, '']);

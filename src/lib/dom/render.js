@@ -1,3 +1,4 @@
+import { setProp } from './props.js';
 import { TEXT_TYPE, KEY_ATTRIBUTE, getAttributes } from '../shared/index.js';
 
 /**
@@ -11,9 +12,9 @@ export function render(vnode) {
 
   const element = document.createElement(vnode.type);
   for (const [name, value] of Object.entries(getAttributes(vnode.props))) {
-    element.setAttribute(name, value);
+    setProp(element, name, value);
   }
-  if (vnode.key !== null) element.setAttribute(KEY_ATTRIBUTE, vnode.key);
+  if (vnode.key !== null) setProp(element, KEY_ATTRIBUTE, vnode.key);
   for (const child of vnode.props.children) {
     element.appendChild(render(child));
   }

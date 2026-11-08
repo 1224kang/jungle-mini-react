@@ -181,7 +181,8 @@ h('ul', { class: 'list', key: 1 }, [h('li', null, 'A'), null, false], 0, 'a', 'b
 | `<template>` | `domToVdom`이 에러 |
 | Element가 아닌 입력 (Text, document, fragment, 주석 등) | `domToVdom`이 에러 |
 | 컴포넌트 (`type`이 함수) | `h()`가 에러 |
-| 함수 이벤트 핸들러 (props 값이 함수) | `h()`가 에러 |
+| `on*` 이름의 함수 prop | 에러 아님. 이벤트 핸들러로 허용하고 props에 그대로 둠 (`addEventListener`로 등록) |
+| 그 밖의 이름의 함수 prop | `h()`가 에러 |
 | Fragment | 만들 방법을 제공하지 않음 |
 | `value`, `checked`의 실시간 상태 | 에러 아님. 속성으로만 다룸 |
 
@@ -208,30 +209,39 @@ h('ul', { class: 'list', key: 1 }, [h('li', null, 'A'), null, false], 0, 'a', 'b
 
 ## 5. Patch
 
-`diff(oldVNode, newVNode)`는 `Patch[]`를 반환하고, `patch(rootDom, patches)`가 이를 실제 DOM에 반영합니다.
+`diff(oldVNode, newVNode)`는 `Patch[]`를 반환하고, `patch(rootDom, patches)`가 이를 실제 DOM에 반영하고 **패치 후의 루트 DOM 노드를 반환**합니다. (루트가 REPLACE되면 새 노드, 아니면 `rootDom` 그대로. 반환값을 쓰지 않는 호출자는 영향 없음)
 
-`path`는 **루트로부터의 자식 인덱스 배열**입니다. 예: `[0, 2]` = 루트의 0번째 자식의 2번째 자식. 루트 자신은 `[]`입니다.
-여기서 자식 인덱스는 정규화된 VNode의 `props.children` 기준입니다.
+`path`는 **이전(old) VNode 트리 기준**의 자식 인덱스 배열입니다. 예: `[0, 2]` = 루트의 0번째 자식의 2번째 자식. 루트 자신은 `[]`입니다.
+자식 인덱스는 정규화된 VNode의 `props.children` 기준입니다. patch가 실행되며 DOM의 인덱스가 바뀌어도 path는 old 좌표 그대로입니다.
 
 | type | 의미 | 필드 | 설명 |
 |---|---|---|---|
-| `CREATE` | 새 노드 추가 | `path`, `node` | `path`의 마지막 값은 삽입될 인덱스, 나머지는 부모 경로. `node`는 추가할 VNode |
-| `REMOVE` | 노드 삭제 | `path` | 삭제할 노드의 경로 |
-| `REPLACE` | 노드 교체 (태그가 다른 경우) | `path`, `node` | 교체할 노드의 경로와 새 VNode |
+| `CREATE` | 새 노드 추가 | `path`, `node`, `before` | `path.slice(0,-1)`은 부모의 old 경로, 마지막 값은 새 자식 순서에서의 인덱스. `node`를 `render`해 `before` 앞에 삽입 |
+| `REMOVE` | 노드 삭제 | `path` | old 경로의 노드를 삭제 |
+| `REPLACE` | 노드 교체 (type 또는 key가 다른 경우) | `path`, `node` | old 경로의 노드를 `render(node)`로 교체. 하위는 비교하지 않음 |
 | `TEXT` | 텍스트 변경 | `path`, `value` | 텍스트 노드의 경로와 새 문자열 |
-| `PROPS` | 속성 변경 | `path`, `set`, `remove` | `set`: 추가·변경할 `{ 이름: 값 }`, `remove`: 삭제할 속성 이름 `string[]` |
+| `PROPS` | 속성 변경 | `path`, `set`, `remove` | `set`: 추가·변경할 `{ 이름: 값 }`(값은 문자열 또는 `on*` 함수), `remove`: 삭제할 이름 `string[]` |
+| `MOVE` | 노드 이동 | `path`, `index`, `before` | old 경로의 노드(같은 부모 안)를 새 순서 `index` 위치, `before` 앞으로 이동. (Phase 2 keyed diff가 만든다) |
+
+`before`(배치 기준점):
+- `null` → 부모의 맨 끝에 붙인다.
+- `{ old: i }` → 같은 부모의 old 자식 `i`번(재사용되는 형제)의 DOM 노드 앞.
+- `{ new: j }` → 같은 patch 목록에서 먼저 실행된 `CREATE`(같은 부모, 새 인덱스 `j`)가 만든 DOM 노드 앞.
 
 ```js
-{ type: 'CREATE',  path: [0, 2], node: { type: 'li', key: null, props: { children: [] } } }
+{ type: 'CREATE',  path: [0, 2], node: { type: 'li', key: null, props: { children: [] } }, before: null }
 { type: 'REMOVE',  path: [0, 1] }
 { type: 'REPLACE', path: [0],    node: { type: 'p', key: null, props: { children: [] } } }
 { type: 'TEXT',    path: [0, 0], value: '새 텍스트' }
-{ type: 'PROPS',   path: [0],    set: { class: 'on' }, remove: ['id'] }
+{ type: 'PROPS',   path: [0],    set: { class: 'on', onclick: fn }, remove: ['id'] }
+{ type: 'MOVE',    path: [0, 0], index: 3, before: null }
 ```
 
 ### 규칙
 
-- 한 `Patch` 배열 안에서 같은 부모의 `CREATE` / `REMOVE`가 섞이면 인덱스가 밀리므로, 적용 순서(예: REMOVE는 뒤에서부터)는 `diff`와 `patch` 구현이 일관되게 정합니다.
-- 루트 경로 `[]`에 대한 `REPLACE`는 `rootDom.replaceWith()`로 처리할 수 있습니다 (`rootDom`이 부모를 가진 경우).
+- **일괄 해석 후 실행**: `patch`는 DOM을 하나도 바꾸기 전에 모든 `path`와 `before.old`를 DOM 노드 참조로 해석합니다. 해석에 실패하거나(구조가 old 트리와 다름) 알 수 없는 type이면 DOM을 건드리기 전에 에러를 던집니다(부분 적용 없음). 실행은 해석한 참조로 배열 순서대로 합니다.
+- **순서**: `diff`는 부모 단위로 ① 제거 ② 배치(`MOVE`/`CREATE`) ③ 재사용된 자식으로 재귀 순으로 배열에 넣고, `patch`는 배열 순서대로 실행합니다. 부모 자신의 `PROPS`는 그 앞에 와도 됩니다.
+- 루트 경로 `[]`에 대한 `REPLACE`는 `rootDom.replaceWith()`로 처리하며 `rootDom`에 부모가 있어야 합니다(없으면 해석 단계에서 에러).
 - `diff`는 순수 함수이며 DOM에 의존하지 않습니다. 입력은 VNode 두 개, 출력은 위 형식의 객체뿐입니다.
-- `PROPS`의 `set`과 `remove`는 HTML 속성만 다룹니다. `children`은 포함하지 않습니다 (`getAttributes`로 추려서 비교). `key`는 props에 없으므로 `PROPS`의 대상이 아닙니다.
+- `PROPS`는 HTML 속성과 `on*` 함수 핸들러만 다룹니다. `children`은 포함하지 않습니다 (`getAttributes`로 추려서 비교). `key`는 props에 없으므로 `PROPS`의 대상이 아닙니다.
+- 함수 핸들러(`on*` + 함수)는 `addEventListener`로 등록하고, 교체·제거 시 이전 리스너를 먼저 뗍니다. `setAttribute`로 쓰지 않습니다.

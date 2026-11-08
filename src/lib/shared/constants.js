@@ -28,4 +28,5 @@ export const PATCH_TYPE = Object.freeze({
   REPLACE: 'REPLACE',
   TEXT: 'TEXT',
   PROPS: 'PROPS',
+  MOVE: 'MOVE',
 });
