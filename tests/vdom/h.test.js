@@ -30,6 +30,18 @@ describe('h - 1.1 모양', () => {
     expect(h('DIV', null).type).toBe('div');
   });
 
+  it('2.3 예약 타입 "#text"는 잘못된 입력으로 거부한다 (회귀)', () => {
+    expect(() => h('#text', null, 'hello')).toThrow(/^\[mini-react\] 잘못된 입력: .+/);
+  });
+
+  it('2.3 소문자로 바꾼 뒤 검사하므로 "#TEXT"도 거부한다 (회귀)', () => {
+    expect(() => h('#TEXT', null, 'hello')).toThrow(/^\[mini-react\] 잘못된 입력: .+/);
+  });
+
+  it('2.3 예약 타입 거부 후에도 정상 태그 소문자 변환과 문자열 자식의 텍스트 VNode 생성은 그대로', () => {
+    expect(h('SPAN', null, 'hello')).toEqual(el('span', {}, [text('hello')]));
+  });
+
   it('2.3 type이 빈 문자열이거나 문자열이 아니면 에러', () => {
     expect(() => h('', null)).toThrow('[mini-react] 잘못된 입력');
     expect(() => h(1, null)).toThrow('[mini-react] 잘못된 입력');
@@ -41,6 +53,24 @@ describe('h - 1.2 props 표', () => {
   it('1.2 이름: HTML 속성 이름을 그대로 둔다 (class, for, data-id, aria-label)', () => {
     const props = { class: 'a', for: 'x', 'data-id': '1', 'aria-label': '닫기' };
     expect(h('label', props).props).toEqual({ ...props, children: [] });
+  });
+
+  it('1.2 이름 "__proto__"도 일반 속성으로 보존한다 (JSON.parse로 만든 own property, 회귀)', () => {
+    const props = JSON.parse('{"__proto__":"x"}');
+    const v = h('div', props);
+    expect(Object.hasOwn(v.props, '__proto__')).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(v.props, '__proto__').value).toBe('x');
+    expect(Object.getPrototypeOf(v.props)).toBe(Object.prototype);
+    expect(Object.keys(v.props).sort()).toEqual(['__proto__', 'children']);
+    // 입력 props는 수정하지 않는다
+    expect(Object.keys(props)).toEqual(['__proto__']);
+    expect(Object.getOwnPropertyDescriptor(props, '__proto__').value).toBe('x');
+  });
+
+  it('1.2 계산된 프로퍼티 ["__proto__"]도 값 변환 규칙대로 보존한다 (회귀)', () => {
+    const v = h('div', { ['__proto__']: 1, class: 'a' });
+    expect(Object.getOwnPropertyDescriptor(v.props, '__proto__').value).toBe('1');
+    expect(v.props.class).toBe('a');
   });
 
   it('1.2 값: 항상 문자열 (maxlength: 10 → "10")', () => {

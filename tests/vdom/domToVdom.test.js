@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { domToVdom } from '../../src/lib/vdom/domToVdom.js';
+import { render } from '../../src/lib/dom/render.js';
 
 const text = (value) => ({ type: '#text', value });
 const el = (type, props = {}, children = [], key = null) => ({
@@ -40,6 +41,27 @@ describe('domToVdom - 1.2 props 표', () => {
   it('1.2 이름: HTML 속성 이름 그대로 (class, for, data-id, aria-label)', () => {
     const v = domToVdom(parse('<label class="a" for="x" data-id="1" aria-label="닫기"></label>'));
     expect(v.props).toEqual({ class: 'a', for: 'x', 'data-id': '1', 'aria-label': '닫기', children: [] });
+  });
+
+  it('1.2 이름 "__proto__"인 속성도 일반 속성으로 보존한다 (회귀)', () => {
+    const p = parse('<p __proto__="x" class="a">t</p>');
+    const v = domToVdom(p);
+    expect(Object.hasOwn(v.props, '__proto__')).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(v.props, '__proto__').value).toBe('x');
+    expect(Object.getPrototypeOf(v.props)).toBe(Object.prototype);
+    expect(Object.keys(v.props).sort()).toEqual(['__proto__', 'children', 'class']);
+    // 입력 DOM은 수정하지 않는다
+    expect(p.outerHTML).toBe('<p __proto__="x" class="a">t</p>');
+  });
+
+  it('1.2 "__proto__" 속성이 DOM → VNode → DOM 왕복에서 유지된다 (회귀)', () => {
+    const v = domToVdom(parse('<div><p __proto__="x">t</p></div>'));
+    const dom = render(v);
+    expect(dom.firstElementChild.getAttribute('__proto__')).toBe('x');
+    expect(dom.outerHTML).toBe('<div><p __proto__="x">t</p></div>');
+    const again = domToVdom(dom);
+    expect(again).toEqual(v);
+    expect(Object.getOwnPropertyDescriptor(again.props.children[0].props, '__proto__').value).toBe('x');
   });
 
   it('1.2 값: 항상 문자열 (maxlength="10" → "10")', () => {

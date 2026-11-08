@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '../../src/lib/dom/render.js';
 import { h } from '../../src/lib/vdom/h.js';
+import { getAttributes } from '../../src/lib/shared/index.js';
 
 // 2.4 render(vnode)
 describe('render', () => {
@@ -29,6 +30,20 @@ describe('render', () => {
     expect(node.getAttributeNames().sort()).toEqual(['aria-label', 'class', 'data-id', 'for']);
     expect(node.getAttribute('for')).toBe('x');
     expect(node.hasAttribute('children')).toBe(false);
+  });
+
+  it('2.4 getAttributes는 "__proto__" 속성을 own property로 보존한다 (회귀)', () => {
+    const props = JSON.parse('{"__proto__":"x","class":"a","children":[]}');
+    const attrs = getAttributes(props);
+    expect(Object.keys(attrs).sort()).toEqual(['__proto__', 'class']);
+    expect(Object.getOwnPropertyDescriptor(attrs, '__proto__').value).toBe('x');
+    expect(Object.keys(props).sort()).toEqual(['__proto__', 'children', 'class']);
+  });
+
+  it('2.4 h()로 만든 "__proto__" 속성이 render 후 DOM 속성으로 남는다 (회귀)', () => {
+    const node = render(h('div', JSON.parse('{"__proto__":"x"}')));
+    expect(node.getAttribute('__proto__')).toBe('x');
+    expect(node.outerHTML).toBe('<div __proto__="x"></div>');
   });
 
   it('2.4 1.2 불리언 속성 "" → 값 없는 속성', () => {
