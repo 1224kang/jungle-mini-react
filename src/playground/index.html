@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini React Playground</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1>Mini React Playground</h1>
+
+    <section>
+      <label for="case-select">fixture</label>
+      <select id="case-select"></select>
+      <label for="html-input">HTML (단일 루트 요소, 직접 수정 가능)</label>
+      <textarea id="html-input" rows="6" spellcheck="false"></textarea>
+      <div class="buttons">
+        <button id="btn-convert">변환</button>
+        <button id="btn-check-all">모든 fixture 왕복 검사</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. 변환 (domToVdom → render)</h2>
+      <div id="roundtrip" class="status"></div>
+      <div class="row">
+        <div>
+          <h3>원본 미리보기</h3>
+          <div id="out-original" class="box"></div>
+        </div>
+        <div>
+          <h3>VNode (domToVdom)</h3>
+          <pre id="out-vnode" class="panel"></pre>
+        </div>
+        <div>
+          <h3>다시 렌더 (render)</h3>
+          <div id="out-rendered" class="box"></div>
+          <pre id="out-rendered-html" class="panel"></pre>
+        </div>
+      </div>
+      <div id="out-check-all"></div>
+    </section>
+
+    <section class="todo">
+      <h2>2. diff</h2>
+      <p class="muted">다음 단계에서 구현 (docs/contracts.md 5장 Patch 확정 후)</p>
+      <button disabled>diff</button>
+    </section>
+
+    <section class="todo">
+      <h2>3. patch 적용</h2>
+      <p class="muted">다음 단계에서 구현 (docs/contracts.md 5장 Patch 확정 후)</p>
+      <button disabled>patch 적용</button>
+    </section>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
