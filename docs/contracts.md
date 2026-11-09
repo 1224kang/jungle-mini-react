@@ -115,7 +115,7 @@ diff, render, patch는 정규화된 VNode만 받는다고 가정하고, 엣지 �
 ### 2.3 `h(type, props, ...children)`
 
 **type**
-- 소문자로 바꿉니다. (`'DIV'` → `'div'`) 빈 문자열이나 문자열이 아닌 값은 에러입니다. (함수는 3장)
+- 소문자로 바꿉니다. (`'DIV'` → `'div'`) 빈 문자열이나 문자열·함수가 아닌 값은 에러입니다. (함수는 컴포넌트, 6장)
 - `h()`는 요소만 만듭니다. 소문자로 바꾼 결과가 텍스트 예약 타입 `'#text'`이면 에러입니다. (`'#TEXT'`도 포함, 텍스트는 문자열 자식으로 만듦)
 
 **props**
@@ -139,7 +139,7 @@ diff, render, patch는 정규화된 VNode만 받는다고 가정하고, 엣지 �
 | 숫자 | 문자열로 바꿔 텍스트 노드. **`0`도 남김** |
 | `null`, `undefined`, `true`, `false` | 버림 |
 | 배열 | 깊이에 상관없이 평탄화 |
-| VNode 객체 | 그대로 사용 |
+| VNode 객체 (컴포넌트 VNode 포함, 6장) | 그대로 사용 |
 | 그 외 (함수, 일반 객체 등) | 에러 |
 
 - 처리 순서: 자식 정리(위 표) → ④(인접 텍스트 합치기) → 빈 문자열 제거. 텍스트 VNode도 문자열과 같이 합칩니다.
@@ -180,7 +180,7 @@ h('ul', { class: 'list', key: 1 }, [h('li', null, 'A'), null, false], 0, 'a', 'b
 | SVG, MathML | `domToVdom`이 `namespaceURI`를 확인해 에러 |
 | `<template>` | `domToVdom`이 에러 |
 | Element가 아닌 입력 (Text, document, fragment, 주석 등) | `domToVdom`이 에러 |
-| 컴포넌트 (`type`이 함수) | `h()`가 에러 |
+| 컴포넌트 (`type`이 함수) | 에러 아님. `h()`가 컴포넌트 VNode를 만듦 (6장, Phase 2) |
 | `on*` 이름의 함수 prop | 에러 아님. 이벤트 핸들러로 허용하고 props에 그대로 둠 (`addEventListener`로 등록) |
 | 그 밖의 이름의 함수 prop | `h()`가 에러 |
 | Fragment | 만들 방법을 제공하지 않음 |
@@ -246,3 +246,47 @@ h('ul', { class: 'list', key: 1 }, [h('li', null, 'A'), null, false], 0, 'a', 'b
 - `PROPS`는 HTML 속성과 `on*` 함수 핸들러만 다룹니다. `children`은 포함하지 않습니다 (`getAttributes`로 추려서 비교). `key`는 props에 없으므로 `PROPS`의 대상이 아닙니다.
 - 함수 핸들러(`on*` + 함수)는 `addEventListener`로 등록하고, 교체·제거 시 이전 리스너를 먼저 뗍니다. `setAttribute`로 쓰지 않습니다.
 - **keyed children (Phase 2)**: 자식은 `type`+`key`로 재사용하고 React식 lastPlacedIndex로 이동 여부를 정합니다. 배치(`MOVE`/`CREATE`)는 새 순서의 뒤에서부터 내며 `before`는 바로 다음 새 형제입니다. 중복 key의 두 번째 이후와 key 없는 자식은 key 없는 old 자식과 등장 순서대로 짝짓습니다. 맨 끝에 연속으로 생성되는 자식은 앞에서부터 `before: null`로 낼 수 있습니다(결과 동일).
+
+---
+
+## 6. 컴포넌트 (Phase 2)
+
+컴포넌트는 props를 받아 **VNode 하나**를 반환하는 함수입니다.
+컴포넌트 VNode는 diff 전에 호출되어 요소 VNode로 펼쳐집니다. `diff` / `patch` / `render`의 입력·출력 형식(1장, 5장)은 바뀌지 않습니다.
+
+### 6.1 컴포넌트 VNode
+
+```js
+h(Counter, { count: 3, onInc: fn, key: 'a' }, '라벨')
+// →
+{
+  type: Counter,               // 함수
+  key: 'a',
+  props: {
+    count: 3,                  // 값을 변환하지 않음
+    onInc: fn,
+    children: [{ type: '#text', value: '라벨' }],
+  },
+}
+```
+
+| 항목 | 요소 VNode (1장) | 컴포넌트 VNode |
+|---|---|---|
+| `type` | 소문자 태그 문자열 | 함수 |
+| `key` | `key` / `data-key` → 최상위 (2.3) | 같음 |
+| props 값 | 문자열로 변환, 함수는 `on*`만 (2.3) | **변환하지 않음.** 숫자·함수·객체·배열 그대로 |
+| `props.children` | 2.3 children 규칙으로 정규화 | 같음 |
+
+- 넘겨받은 props 객체는 수정하지 않습니다.
+- 요소의 자식으로 컴포넌트 VNode를 넣을 수 있습니다.
+- 컴포넌트 VNode는 **펼치기 전에만** 존재합니다. `diff` / `patch` / `render` / `domToVdom`은 다루지 않습니다.
+
+### 6.2 펼치기
+
+- 컴포넌트는 요소 VNode 또는 컴포넌트 VNode **하나**를 반환합니다. `null`·문자열·배열 등은 `[mini-react] 잘못된 입력`입니다. (조건부로 숨길 때는 부모에서 `cond && h(Child)`)
+- 컴포넌트 VNode에 `key`가 있으면 펼친 결과의 최상위 요소 key로 씁니다.
+
+### 6.3 Hook
+
+- Hook(`useState`, `useEffect`, `useMemo`)은 `mount`한 **루트 컴포넌트 안에서만** 쓸 수 있습니다. 그 밖에서 부르면 `[mini-react] 잘못된 입력`입니다.
+- 자식 컴포넌트는 상태 없이 props만 쓰는 순수 함수입니다. (Lifting State Up)
