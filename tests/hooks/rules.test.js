@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { h, mount, useState } from '../../src/lib/index.js';
+import { h, mount, useState, useEffect, useMemo } from '../../src/lib/index.js';
 import {
   INVALID,
   createContainer,
@@ -272,5 +272,36 @@ describe('Hook 규칙 - E-3 렌더마다 Hook 개수가 달라짐', () => {
     capture.restore();
     expect(capture.errors).toHaveLength(1);
     expect(() => useState(0)).toThrow(INVALID);
+  });
+});
+
+describe('Hook 규칙 - E-4 같은 순서의 Hook 종류가 바뀜', () => {
+  it.each([
+    ['useState → useMemo', (mode) => (mode === 0 ? useState('x') : useMemo(() => 'x', []))],
+    ['useMemo → useEffect', (mode) => (mode === 0 ? useMemo(() => 'x', []) : useEffect(() => {}))],
+    ['useEffect → useState', (mode) => (mode === 0 ? useEffect(() => {}) : useState('x'))],
+  ])('두 번째 렌더에서 %s로 바뀌면 에러가 나고 DOM은 이전 그대로다', async (_name, conditionalHook) => {
+    let setMode;
+    const App = () => {
+      const [mode, set] = useState(0);
+      setMode = set;
+      conditionalHook(mode);
+      return h('p', { class: 'mode' }, mode);
+    };
+    const container = createContainer();
+    mount(h(App, null), container);
+    const p = container.firstChild;
+    expect(container.innerHTML).toBe('<p class="mode">0</p>');
+
+    const capture = captureMicrotaskErrors();
+    setMode(1);
+    await flushMicrotasks();
+    capture.restore();
+
+    expect(capture.errors).toHaveLength(1);
+    expect(capture.errors[0]).toBeInstanceOf(TypeError);
+    expect(capture.errors[0].message).toMatch(INVALID);
+    expect(container.firstChild).toBe(p);
+    expect(container.innerHTML).toBe('<p class="mode">0</p>');
   });
 });
