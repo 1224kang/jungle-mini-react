@@ -53,6 +53,67 @@ export function useState(initial) {
 }
 
 /**
+ * 화면 반영 후 실행할 부수 효과를 등록한다. 렌더 중에는 실행하지 않고 "이번에 실행할지"만 기록한다.
+ * - deps 생략: 매 렌더 후 실행
+ * - deps가 []: 첫 렌더 후 1회
+ * - 그 외: 이전 실행 때의 deps와 원소 하나라도 Object.is로 다르면(길이 변화 포함) 실행
+ * 실제 실행(cleanup → effect)은 root.js의 runEffects가 patch 직후에 한다.
+ * @param {() => (void|(() => void))} effect 부수 효과. 함수를 반환하면 정리 작업(cleanup)으로 쓴다.
+ * @param {Array<*>} [deps] 의존 값 목록
+ */
+export function useEffect(effect, deps) {
+  const slot = useSlot(HOOK_TYPE.EFFECT, () => ({ type: HOOK_TYPE.EFFECT, deps: null, cleanup: null, ran: false }));
+  if (typeof effect !== 'function') {
+    throw invalidInputError(`useEffect의 첫 인자는 함수여야 함 (받은 값: ${describe(effect)})`);
+  }
+  if (deps !== undefined && !Array.isArray(deps)) {
+    throw invalidInputError(`useEffect의 deps는 생략하거나 배열이어야 함 (받은 값: ${describe(deps)})`);
+  }
+  const shouldRun = !slot.ran || deps === undefined || depsChanged(slot.deps, deps);
+  if (shouldRun) {
+    // deps는 실제로 실행할 때(runEffects) 슬롯에 저장한다. 렌더가 중간에 실패해도 이전 deps가 남는다.
+    currentRoot.pendingEffects.push({ slot, effect, deps: deps === undefined ? null : deps });
+  }
+}
+
+/**
+ * 계산 결과를 재사용한다. 첫 렌더 또는 deps가 바뀌었을 때만 compute()를 호출한다.
+ * @param {() => *} compute 계산 함수
+ * @param {Array<*>} deps 의존 값 목록 (필수)
+ * @returns {*} 계산 결과
+ */
+export function useMemo(compute, deps) {
+  const slot = useSlot(HOOK_TYPE.MEMO, () => ({ type: HOOK_TYPE.MEMO, deps: null, value: undefined }));
+  if (typeof compute !== 'function') {
+    throw invalidInputError(`useMemo의 첫 인자는 함수여야 함 (받은 값: ${describe(compute)})`);
+  }
+  if (!Array.isArray(deps)) {
+    throw invalidInputError(`useMemo의 deps는 배열이어야 함 (받은 값: ${describe(deps)})`);
+  }
+  if (slot.deps === null || depsChanged(slot.deps, deps)) {
+    slot.value = compute();
+    slot.deps = deps;
+  }
+  return slot.value;
+}
+
+/** 두 deps 목록이 다른가. 길이가 다르거나 원소 하나라도 Object.is로 다르면 true. */
+function depsChanged(prev, next) {
+  if (prev === null || prev.length !== next.length) return true;
+  return next.some((value, i) => !Object.is(value, prev[i]));
+}
+
+function describe(value) {
+  if (typeof value === 'function') return '함수';
+  if (Array.isArray(value)) return '배열';
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value === 'object') return '객체';
+  if (typeof value === 'symbol') return 'symbol';
+  return JSON.stringify(value) ?? String(value);
+}
+
+/**
  * 현재 순서의 슬롯을 꺼낸다. 첫 렌더면 create(root)로 만든다.
  * 렌더 밖·자식 컴포넌트 호출(E-1, E-2), 종류 변경(E-4), 첫 렌더보다 많은 호출(E-3)은 에러.
  */

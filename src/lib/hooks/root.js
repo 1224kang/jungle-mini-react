@@ -2,7 +2,7 @@ import { expand, expandComponentResult, isElementVNode, isComponentVNode } from 
 import { render } from '../dom/render.js';
 import { diff } from '../reconcile/diff.js';
 import { patch } from '../reconcile/patch.js';
-import { DOM_NODE_TYPE, invalidInputError } from '../shared/index.js';
+import { DOM_NODE_TYPE, HOOK_TYPE, MAX_NESTED_UPDATES, invalidInputError } from '../shared/index.js';
 import { renderRootComponent } from './hooks.js';
 
 /**
@@ -49,9 +49,13 @@ function createRoot(element, container, isComponent) {
     dirty: false, // 마지막 렌더 이후 상태 값이 실제로 바뀌었는가
     scheduled: false, // flush가 예약됐는가
     rendering: false, // ① 진행 중 (이때의 setState는 에러)
-    pendingEffects: [], // 이번 렌더에서 실행할 effect 슬롯 (useEffect에서 채움)
+    pendingEffects: [], // 이번 렌더에서 실행할 effect ({ slot, effect, deps }, useEffect에서 채움)
     unmounted: false,
-    nestedUpdates: 0, // effect발 연속 갱신 횟수 (MAX_NESTED_UPDATES 검사, useEffect에서 사용)
+    unmounting: false, // unmount 진행 중 (cleanup 실행 중)
+    runningEffects: false, // runEffects 진행 중 (이때 예약된 갱신은 effect발)
+    updateFromEffect: false, // 다음 flush에 effect 안에서 예약된 변경이 있는가
+    updateFromOutside: false, // 다음 flush에 effect 밖(이벤트·타이머 등)에서 예약된 변경이 있는가
+    nestedUpdates: 0, // effect발 연속 갱신 횟수 (MAX_NESTED_UPDATES 검사)
     requestUpdate: () => scheduleUpdate(root), // setState가 부르는 갱신 예약
   };
   return root;
@@ -62,6 +66,7 @@ function createRoot(element, container, isComponent) {
  * 요소 VNode 루트는 Hook 없이 펼치기만 한다.
  */
 function buildHostTree(root) {
+  root.pendingEffects = []; // 실패한 이전 렌더가 남긴 기록을 버린다
   root.rendering = true;
   try {
     if (!root.isComponent) return expand(root.element);
@@ -74,6 +79,8 @@ function buildHostTree(root) {
 
 /** 첫 setState만 마이크로태스크에 flush를 예약한다. 같은 동기 작업의 나머지 변경은 그 flush에 합쳐진다. */
 function scheduleUpdate(root) {
+  if (root.runningEffects) root.updateFromEffect = true;
+  else root.updateFromOutside = true;
   if (root.scheduled) return;
   root.scheduled = true;
   queueMicrotask(() => flush(root));
@@ -85,8 +92,21 @@ function scheduleUpdate(root) {
  */
 function flush(root) {
   root.scheduled = false;
+  const onlyFromEffect = root.updateFromEffect && !root.updateFromOutside;
+  root.updateFromEffect = false;
+  root.updateFromOutside = false;
   if (root.unmounted || !root.dirty) return; // 같은 값만 넣었으면 렌더 0회
   root.dirty = false;
+
+  // effect가 상태를 바꿔 갱신이 끝없이 이어지는 것을 막는다. effect 밖에서 시작된 갱신이면 다시 0부터 센다.
+  if (!onlyFromEffect) {
+    root.nestedUpdates = 0;
+  } else if (++root.nestedUpdates > MAX_NESTED_UPDATES) {
+    root.nestedUpdates = 0;
+    throw invalidInputError(
+      `useEffect 안의 상태 변경으로 갱신이 ${MAX_NESTED_UPDATES}회를 넘게 이어짐 (deps를 확인하세요)`,
+    );
+  }
 
   const next = buildHostTree(root); // ①
   const patches = diff(root.hostTree, next); // ②
@@ -97,19 +117,48 @@ function flush(root) {
 }
 
 /**
- * 이번 렌더에서 실행 대상인 effect를 실행한다. (cleanup 먼저, 그다음 effect)
- * TODO(T5): useEffect 구현 시 채운다. 지금은 호출 지점만 둔다.
+ * 이번 렌더에서 실행 대상인 effect를 patch 직후 동기로 실행한다. (DOM은 이미 반영돼 있음)
+ * 1) 대상 슬롯의 이전 cleanup을 선언 순서로 모두 실행
+ * 2) 대상 effect를 선언 순서로 실행, 반환값이 함수면 cleanup으로 저장
+ * effect 안의 setState는 일반 규칙대로 다음 마이크로태스크 flush를 예약한다.
  */
 function runEffects(root) {
+  const targets = root.pendingEffects;
   root.pendingEffects = [];
+  if (targets.length === 0) return;
+
+  root.runningEffects = true;
+  try {
+    for (const { slot } of targets) runCleanup(slot);
+    for (const { slot, effect, deps } of targets) {
+      slot.deps = deps;
+      slot.ran = true;
+      const cleanup = effect();
+      slot.cleanup = typeof cleanup === 'function' ? cleanup : null;
+    }
+  } finally {
+    root.runningEffects = false;
+  }
+}
+
+/** 슬롯의 cleanup을 한 번만 실행한다. */
+function runCleanup(slot) {
+  const cleanup = slot.cleanup;
+  if (cleanup === null) return;
+  slot.cleanup = null;
+  cleanup();
 }
 
 /**
- * 앱을 내린다. 두 번째 호출은 무시한다. 이후 setState와 예약된 flush는 아무것도 하지 않는다.
- * TODO(T5): 남아 있는 effect cleanup을 선언 순서로 먼저 실행한다.
+ * 앱을 내린다. 남은 effect cleanup(선언 순서) → 루트 DOM 제거 → unmounted.
+ * 두 번째 호출은 무시한다. 이후 setState와 예약된 flush는 아무것도 하지 않는다.
  */
 function unmount(root) {
-  if (root.unmounted) return;
-  root.unmounted = true;
+  if (root.unmounted || root.unmounting) return;
+  root.unmounting = true; // cleanup 안에서 다시 unmount를 불러도 한 번만 처리
+  for (const slot of root.hooks) {
+    if (slot.type === HOOK_TYPE.EFFECT) runCleanup(slot);
+  }
   root.dom.remove();
+  root.unmounted = true;
 }
