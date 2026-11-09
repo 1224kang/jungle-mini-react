@@ -21,18 +21,19 @@ jungle-mini-react/
 ├─ index.html              # 진입 페이지 (playground / app 링크)
 ├─ vite.config.js          # vitest 환경(jsdom) 설정
 ├─ docs/
-│  └─ contracts.md         # VNode / Patch 데이터 계약
+│  ├─ contracts.md         # VNode / Patch / 컴포넌트 데이터 계약
+│  └─ diff-patch.md        # diff / patch 설계 배경과 세부 규칙
 ├─ fixtures/
 │  └─ cases.js             # diff/patch 검증용 before/after 케이스
 ├─ src/
 │  ├─ lib/                 # Mini React 본체
-│  │  ├─ index.js          # 공개 인터페이스 (h, domToVdom, render, diff, patch)
-│  │  ├─ shared/           # 상수 (NODE_TYPE, PATCH_TYPE)
-│  │  ├─ vdom/             # h, domToVdom (VNode 생성/변환)
+│  │  ├─ index.js          # 공개 인터페이스 (h, domToVdom, render, diff, patch, mount, useState, useEffect, useMemo)
+│  │  ├─ shared/           # 상수 (NODE_TYPE, PATCH_TYPE, HOOK_TYPE), 에러, 헬퍼
+│  │  ├─ vdom/             # h, domToVdom (VNode 생성/변환), expand (컴포넌트 → 요소 VNode로 펼치기)
 │  │  ├─ dom/              # render (VNode → 실제 DOM)
 │  │  ├─ reconcile/        # diff(변경 계산), patch(실제 DOM 반영)
-│  │  └─ hooks/            # useState, useEffect, useMemo (Phase 2)
-│  ├─ playground/          # 변환/diff/patch 검증 페이지
+│  │  └─ hooks/            # useState, useEffect, useMemo, mount (상태·갱신 배칭)
+│  ├─ playground/          # 변환/diff/patch 검증 페이지, hooks/ 예제 페이지
 │  └─ app/                 # Mini React로 만든 데모 앱
 ├─ tests/                  # lib 구조를 따르는 테스트 + boundaries.test.js
 ├─ scripts/                # 검증 등 보조 스크립트
@@ -46,10 +47,39 @@ jungle-mini-react/
 1. **정보 은닉**: 외부(playground, app, 통합 테스트)는 `src/lib/index.js`에서만 import합니다.
 2. **관심사 분리**: `vdom`은 VNode 생성/변환, `dom`은 VNode→DOM, `reconcile/diff`는 변경 계산, `reconcile/patch`는 DOM 반영을 맡습니다.
 3. **낮은 결합도**: `diff.js`는 DOM API와 `dom/`을 쓰지 않는 순수 함수입니다.
-4. **의존성 방향**: playground/app → lib/index.js → vdom·dom·reconcile → shared (역방향 import 금지). `tests/boundaries.test.js`가 검사합니다.
+4. **의존성 방향**: playground/app → lib/index.js → hooks → vdom·dom·reconcile → shared (역방향 import 금지). `tests/boundaries.test.js`가 검사합니다.
 
 - 데이터 형식은 [docs/contracts.md](docs/contracts.md)를 따릅니다.
 - 검증 페이지: `npm run dev` 후 http://localhost:5173/src/playground/
+- Hooks 예제 페이지: http://localhost:5173/src/playground/hooks/ (배칭 · 렌더 횟수 확인)
+
+### 컴포넌트와 Hooks (Phase 2)
+
+상태가 바뀌면 **① Virtual DOM 생성 → ② 이전 Virtual DOM과 비교(`diff`) → ③ 바뀐 부분만 실제 DOM에 반영(`patch`)** 순으로 갱신합니다.
+컴포넌트는 ①에서 일반 요소 VNode로 펼쳐지므로 `diff` / `patch`는 Phase 1 그대로 씁니다.
+
+```js
+import { h, mount, useState } from './src/lib/index.js';
+
+// 자식: 상태 없이 props만 쓰는 순수 함수
+function Counter({ count, onInc }) {
+  return h('button', { onclick: onInc }, `count: ${count}`);
+}
+
+// 루트: 상태와 Hook은 여기에만 둡니다 (Lifting State Up)
+function App() {
+  const [count, setCount] = useState(0);
+  const incThree = () => { setCount((c) => c + 1); setCount((c) => c + 1); setCount((c) => c + 1); };
+  return h(Counter, { count, onInc: incThree }); // 한 핸들러에서 3번 바꿔도 렌더는 1번
+}
+
+const { unmount } = mount(h(App), document.getElementById('app'));
+```
+
+- **Hook은 루트 컴포넌트에서만** 쓸 수 있습니다. 자식 컴포넌트·이벤트 핸들러에서 부르면 에러가 납니다.
+- 같은 작업 안의 상태 변경은 마이크로태스크로 모아 **한 번만** 다시 그립니다. 같은 값으로 바꾸면 다시 그리지 않습니다.
+- `useEffect`는 DOM에 반영된 직후 실행되고, 다시 실행하기 전과 `unmount` 때 정리 함수를 부릅니다.
+- 자세한 규칙은 [docs/contracts.md](docs/contracts.md) 6장을 따릅니다.
 - 빈 폴더의 `.gitkeep`은 폴더 구조 유지용이며, 코드를 추가하면 삭제해도 됩니다.
 
 ## 🛠️ 기술 스택

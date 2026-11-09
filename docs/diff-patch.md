@@ -142,7 +142,7 @@ docker compose run --rm -T dev npx vitest run --exclude ".worktrees/**" tests/re
 
 ## 9. 미지원
 
-- 컴포넌트·상태·Hooks (README 다음 Phase — 이 `diff`/`patch` 위에 "이전 VNode 보관 + 재렌더 시 diff/patch"로 연결)
+- ~~컴포넌트·상태·Hooks~~ → Phase 2에서 지원. 이 `diff`/`patch`는 그대로 두고, 컴포넌트를 diff 전에 요소 VNode로 펼친 뒤 "이전 VNode 보관 + 재렌더 시 diff/patch"로 연결했다 (`src/lib/vdom/expand.js`, `src/lib/hooks/`, 계약은 `docs/contracts.md` 6장).
 - Fragment, Portal, 여러 루트, SVG/MathML
 - `className` 별칭, `style` 객체, `value`/`checked` 프로퍼티(제어 입력)
 - 이벤트 위임·합성 이벤트·캡처/옵션
