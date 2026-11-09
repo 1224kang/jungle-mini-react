@@ -4,3 +4,5 @@ export { domToVdom } from './vdom/domToVdom.js';
 export { render } from './dom/render.js';
 export { diff } from './reconcile/diff.js';
 export { patch } from './reconcile/patch.js';
+export { mount } from './hooks/root.js';
+export { useState } from './hooks/hooks.js';
