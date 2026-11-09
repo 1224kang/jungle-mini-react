@@ -247,8 +247,10 @@ describe('h - 2.1 공통 규칙', () => {
 describe('h - 3장 범위 밖', () => {
   const unsupported = /^\[mini-react\] 지원하지 않음: .+ \(Phase 1 범위 밖\)$/;
 
-  it('3장 컴포넌트 (type이 함수) → 에러', () => {
-    expect(() => h(() => null, null)).toThrow(unsupported);
+  it('3장 컴포넌트 (type이 함수)는 에러가 아니라 컴포넌트 VNode를 만든다 (6장)', () => {
+    const Comp = () => h('div', null);
+    expect(() => h(Comp, null)).not.toThrow();
+    expect(h(Comp, null)).toEqual({ type: Comp, key: null, props: { children: [] } });
   });
 
   it('3장 on으로 시작하지 않는 함수 prop → 에러', () => {
@@ -262,5 +264,136 @@ describe('h - 3장 범위 밖', () => {
   it('3장 on* 함수 prop은 그대로 보존한다', () => {
     const handler = () => {};
     expect(h('button', { onclick: handler }).props.onclick).toBe(handler);
+  });
+});
+
+describe('h - 6장 컴포넌트 VNode', () => {
+  const Item = (props) => h('li', null, props.label);
+
+  it('6.1 문서 예시: h(Fn, { n: 1, onX: f, key: "a" }, "x") → { type: Fn, key: "a", props: { n: 1, onX: f, children } }', () => {
+    const Fn = () => h('div', null);
+    const f = () => {};
+    expect(h(Fn, { n: 1, onX: f, key: 'a' }, 'x')).toStrictEqual({
+      type: Fn,
+      key: 'a',
+      props: { n: 1, onX: f, children: [{ type: '#text', value: 'x' }] },
+    });
+  });
+
+  it('6.1 type은 넘겨받은 함수 그대로다 (소문자 변환 등 없음)', () => {
+    expect(h(Item, null).type).toBe(Item);
+  });
+
+  it('6.1 props 값을 변환하지 않는다: 숫자·불리언·함수·객체·배열을 그대로 둔다', () => {
+    const fn = () => {};
+    const obj = { a: 1 };
+    const arr = [1, 2];
+    const v = h(Item, { n: 10, zero: 0, yes: true, no: false, render: fn, onInc: fn, style: obj, list: arr, label: '라벨' });
+    expect(v.props.n).toBe(10);
+    expect(v.props.zero).toBe(0);
+    expect(v.props.yes).toBe(true);
+    expect(v.props.no).toBe(false);
+    expect(v.props.render).toBe(fn);
+    expect(v.props.onInc).toBe(fn);
+    expect(v.props.style).toBe(obj);
+    expect(v.props.list).toBe(arr);
+    expect(v.props.label).toBe('라벨');
+  });
+
+  it('6.1 on으로 시작하지 않는 이름의 함수 prop도 에러 없이 그대로 둔다 (요소와 다름)', () => {
+    const handler = () => {};
+    expect(() => h(Item, { handler })).not.toThrow();
+    expect(h(Item, { handler }).props.handler).toBe(handler);
+  });
+
+  it('6.1 key는 최상위로 옮기고 props에 넣지 않는다', () => {
+    const v = h(Item, { key: 'a', label: 'x' });
+    expect(v.key).toBe('a');
+    expect('key' in v.props).toBe(false);
+  });
+
+  it('6.1 key가 없으면 null, 숫자 key는 문자열로 바꾼다 (요소와 같은 규칙)', () => {
+    expect(h(Item, null).key).toBeNull();
+    expect(h(Item, { key: null }).key).toBeNull();
+    expect(h(Item, { key: 1 }).key).toBe('1');
+  });
+
+  it('6.1 data-key도 key로 옮기고 props에서 제거한다', () => {
+    const v = h(Item, { 'data-key': 'b' });
+    expect(v.key).toBe('b');
+    expect('data-key' in v.props).toBe(false);
+  });
+
+  it('6.1 key와 data-key를 함께 주거나 key가 문자열·숫자가 아니면 에러 (요소와 같은 규칙)', () => {
+    expect(() => h(Item, { key: 'a', 'data-key': 'b' })).toThrow(/^\[mini-react\] 잘못된 입력: .+/);
+    expect(() => h(Item, { key: {} })).toThrow(/^\[mini-react\] 잘못된 입력: .+/);
+  });
+
+  it('6.1 children은 요소와 같은 규칙으로 정규화한다 (평탄화, 버림, 숫자 → 텍스트, 인접 텍스트 병합)', () => {
+    const v = h(Item, null, ['a', [1, null]], false, h('b', null), '', 'c');
+    expect(v.props.children).toEqual([text('a1'), el('b'), text('c')]);
+  });
+
+  it('6.1 나머지 인자가 없으면 props.children을 정규화해서 쓴다', () => {
+    expect(h(Item, { children: ['x', 'y'] }).props.children).toEqual([text('xy')]);
+    expect(h(Item, { children: 'x' }).props.children).toEqual([text('x')]);
+  });
+
+  it('6.1 나머지 인자가 있으면 props.children 대신 인자를 쓴다', () => {
+    expect(h(Item, { children: ['x'] }, 'y').props.children).toEqual([text('y')]);
+  });
+
+  it('6.1 자식이 없으면 children은 []이다', () => {
+    expect(h(Item, { label: 'a' }).props).toEqual({ label: 'a', children: [] });
+  });
+
+  it('6.1 요소의 자식으로 컴포넌트 VNode를 그대로 넣을 수 있다', () => {
+    const child = h(Item, { key: '1' });
+    const v = h('ul', null, child);
+    expect(v.props.children).toHaveLength(1);
+    expect(v.props.children[0]).toEqual(child);
+    expect(v.props.children[0].type).toBe(Item);
+    expect(v.props.children[0].key).toBe('1');
+  });
+
+  it('6.1 배열로 넘긴 컴포넌트 VNode 목록도 자식이 된다 (items.map 패턴)', () => {
+    const v = h('ul', null, ['a', 'b'].map((id) => h(Item, { key: id, label: id })));
+    expect(v.props.children.map((c) => [c.type, c.key])).toEqual([[Item, 'a'], [Item, 'b']]);
+  });
+
+  it('6.1 컴포넌트 VNode를 사이에 둔 텍스트는 합치지 않는다', () => {
+    const v = h('p', null, 'a', h(Item, null), 'b');
+    expect(v.props.children).toHaveLength(3);
+    expect(v.props.children[0]).toEqual(text('a'));
+    expect(v.props.children[1].type).toBe(Item);
+    expect(v.props.children[2]).toEqual(text('b'));
+  });
+
+  it('6.1 컴포넌트 VNode의 자식으로 컴포넌트 VNode를 넣을 수 있다', () => {
+    const inner = h(Item, { label: 'in' });
+    expect(h(Item, null, inner).props.children[0]).toEqual(inner);
+  });
+
+  it('6.1 h()는 컴포넌트 함수를 호출하지 않는다 (펼치기는 나중)', () => {
+    const Spy = vi.fn(() => h('div', null));
+    h(Spy, { a: 1 });
+    h('div', null, h(Spy, null));
+    expect(Spy).not.toHaveBeenCalled();
+  });
+
+  it('6.1 넘겨받은 props 객체를 수정하지 않는다', () => {
+    const list = Object.freeze([1, 2]);
+    const props = Object.freeze({ key: 'k', n: 1, list, children: Object.freeze(['x']) });
+    let v;
+    expect(() => { v = h(Item, props); }).not.toThrow();
+    expect(props).toEqual({ key: 'k', n: 1, list: [1, 2], children: ['x'] });
+    expect(v.props).not.toBe(props);
+    expect(v.props.list).toBe(list);
+  });
+
+  it('6.1 문자열 type의 기존 규칙은 그대로다 (값 변환, 객체 값·on* 아닌 함수 prop 거부)', () => {
+    expect(h('input', { size: 3, required: true, hidden: false }).props).toEqual({ size: '3', required: '', children: [] });
+    expect(() => h('p', { style: { color: 'red' } })).toThrow('[mini-react] 잘못된 입력');
+    expect(() => h('button', { handler: () => {} })).toThrow('[mini-react] 지원하지 않음');
   });
 });
