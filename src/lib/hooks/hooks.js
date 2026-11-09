@@ -11,7 +11,7 @@ let hookIndex = 0;
  * - 첫 렌더: 슬롯 type 목록(hookTypes)을 기록한다.
  * - 이후 렌더: 호출한 Hook 개수가 첫 렌더와 다르면 에러.
  * 호출이 끝나면(에러가 나도) 컨텍스트를 닫는다.
- * @param {object} root 루트 인스턴스 (root.js)
+ * @param {object} root 루트 인스턴스 (root.js의 FunctionComponent)
  * @returns {*} 루트 컴포넌트의 반환값 (펼치기 전)
  */
 export function renderRootComponent(root) {
