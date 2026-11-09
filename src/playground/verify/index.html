@@ -9,19 +9,14 @@
   <body>
     <header class="toolbar">
       <h1>Virtual DOM / Diff / Patch 검증</h1>
-      <div class="controls">
-        <button id="btn-patch" type="button">Patch</button>
-        <button id="btn-back" type="button" disabled>◀ 뒤로가기</button>
-        <button id="btn-forward" type="button" disabled>앞으로가기 ▶</button>
-        <span class="position">히스토리 <strong id="history-pos">1 / 1</strong></span>
-        <span id="consistency" class="badge">검사 전</span>
-      </div>
+      <span id="consistency" class="badge">검사 전</span>
       <div id="message" class="message" role="status"></div>
     </header>
 
-    <main class="areas">
-      <section class="area">
-        <h2>실제 영역 <small>patch()만으로 갱신되는 DOM</small></h2>
+    <main class="grid">
+      <!-- 왼쪽 상단: 실제 렌더링 영역 -->
+      <section class="panel" id="panel-real">
+        <h2>렌더링 영역 <small>patch()만으로 갱신되는 실제 DOM</small></h2>
         <div id="stats" class="stats">재사용 – · 새로 만듦 – · 제거 –</div>
         <!-- 샘플 HTML. Shadow DOM 안에 있어 페이지 CSS/ID와 격리된다. -->
         <div id="real-host" class="stage">
@@ -42,30 +37,38 @@
         </div>
       </section>
 
-      <section class="area">
-        <h2>테스트 영역 <small>HTML → VNode → render 미리보기</small></h2>
+      <!-- 오른쪽 상단: HTML 편집기 + Patch 버튼 -->
+      <section class="panel" id="panel-editor">
+        <h2>
+          HTML 편집기 <small>수정 후 Patch를 누르면 렌더링 영역에 반영</small>
+          <button id="btn-patch" type="button">Patch</button>
+        </h2>
         <label for="editor" class="sr-only">HTML 편집기</label>
-        <textarea id="editor" spellcheck="false" rows="16"></textarea>
+        <textarea id="editor" spellcheck="false"></textarea>
         <div id="parse-status" class="parse-status"></div>
-        <div id="preview-host" class="stage"></div>
+      </section>
+
+      <!-- 왼쪽 하단: 영수증 형태 Patch 로그 -->
+      <section class="panel" id="panel-log">
+        <h2>Patch 영수증 <small id="log-summary"></small></h2>
+        <div id="receipt" class="receipt">
+          <p class="muted">아직 Patch하지 않았습니다.</p>
+        </div>
+      </section>
+
+      <!-- 오른쪽 하단: 히스토리 -->
+      <section class="panel" id="panel-history">
+        <h2>
+          히스토리 <small>저장된 상태를 눌러 불러오기 · 브라우저 뒤로/앞으로가기도 동작</small>
+        </h2>
+        <div class="controls">
+          <button id="btn-back" type="button" disabled>◀ 뒤로가기</button>
+          <button id="btn-forward" type="button" disabled>앞으로가기 ▶</button>
+          <span class="position"><strong id="history-pos">1 / 1</strong></span>
+        </div>
+        <ol id="history-list" class="history-list"></ol>
       </section>
     </main>
-
-    <section class="log">
-      <h2>Patch 로그 <small id="log-summary"></small></h2>
-      <p class="muted">
-        # = diff가 만든 순서 = patch 실행 순서. patch()는 실행 전에 모든 경로를 old 트리 기준으로 한꺼번에 해석하므로,
-        경로는 이전 VNode 좌표입니다(앞선 REMOVE/MOVE 이후의 실제 DOM 인덱스와 다를 수 있음).
-      </p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>#</th><th>종류</th><th>경로(old)</th><th>대상</th><th>이전 값</th><th>새 값</th><th>비고</th></tr>
-          </thead>
-          <tbody id="log-body"><tr><td colspan="7" class="muted">아직 Patch하지 않았습니다.</td></tr></tbody>
-        </table>
-      </div>
-    </section>
 
     <script type="module" src="./main.js"></script>
   </body>

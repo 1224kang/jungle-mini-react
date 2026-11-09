@@ -42,6 +42,7 @@ const beforeText = (before) =>
 export function toLogRows(oldVNode, patches) {
   const rows = [];
   patches.forEach((p, idx) => {
+    const start = rows.length;
     const order = idx + 1;
     const path = pathText(p.path);
     switch (p.type) {
@@ -89,6 +90,13 @@ export function toLogRows(oldVNode, patches) {
         break;
       default:
         rows.push({ order, type: String(p.type), path, target: '?', from: '', to: '', note: '알 수 없는 patch type' });
+    }
+    // 이 명령의 대상이 key로 식별되는지(KEY), 위치·순서로 식별되는지(INDEX) 표시한다.
+    const subject = p.type === 'CREATE' ? p.node : nodeAt(oldVNode, p.path);
+    const key = subject?.key ?? null;
+    for (const r of rows.slice(start)) {
+      r.by = key == null ? 'INDEX' : 'KEY';
+      r.key = key == null ? '' : String(key);
     }
   });
   return rows;

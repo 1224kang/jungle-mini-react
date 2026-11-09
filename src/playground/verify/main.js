@@ -18,8 +18,9 @@ const ui = {
   stats: $('stats'),
   editor: $('editor'),
   parseStatus: $('parse-status'),
-  logBody: $('log-body'),
+  receipt: $('receipt'),
   logSummary: $('log-summary'),
+  historyList: $('history-list'),
 };
 
 // Shadow DOM 안 기본 스타일 (adoptedStyleSheets: 검증 대상 DOM 트리에 노드를 추가하지 않는다)
@@ -46,7 +47,6 @@ function openShadow(host) {
 }
 
 const realShadow = openShadow($('real-host'));
-const previewShadow = openShadow($('preview-host'));
 
 // ---------- 초기화 ----------
 // 1) 실제 영역의 샘플 DOM → VNode
@@ -58,7 +58,9 @@ let realRoot = render(history.current());
 sampleEl.replaceWith(realRoot);
 
 ui.editor.value = serialize(history.current());
-renderPreview(history.current());
+// 히스토리 항목 라벨 (history와 같은 인덱스). 브라우저 히스토리 항목도 같은 인덱스를 state로 가진다.
+const labels = [{ title: '초기 상태', sub: '샘플' }];
+window.history.replaceState({ i: 0 }, '');
 updateNav();
 checkConsistency({ label: '초기 렌더' });
 
@@ -66,16 +68,16 @@ checkConsistency({ label: '초기 렌더' });
 let debounceTimer = 0;
 ui.editor.addEventListener('input', () => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(updatePreviewFromEditor, 250);
+  debounceTimer = setTimeout(() => tryParse(ui.editor.value), 250);
 });
 ui.patch.addEventListener('click', onPatch);
-ui.back.addEventListener('click', () => onMove(-1));
-ui.forward.addEventListener('click', () => onMove(1));
-
-function updatePreviewFromEditor() {
-  const result = tryParse(ui.editor.value);
-  if (result) renderPreview(result.vnode);
-}
+// 모든 이동은 브라우저 히스토리를 거친다 → popstate 하나로 버튼·목록·브라우저 버튼이 같은 경로를 탄다.
+ui.back.addEventListener('click', () => window.history.back());
+ui.forward.addEventListener('click', () => window.history.forward());
+window.addEventListener('popstate', (e) => {
+  const i = e.state?.i;
+  if (Number.isInteger(i) && i !== history.index) jumpTo(i);
+});
 
 /** textarea 내용을 파싱한다. 실패하면 상태를 표시하고 null. */
 function tryParse(html) {
@@ -93,10 +95,6 @@ function tryParse(html) {
   }
 }
 
-function renderPreview(vnode) {
-  previewShadow.replaceChildren(render(vnode));
-}
-
 function onPatch() {
   clearTimeout(debounceTimer);
   const result = tryParse(ui.editor.value);
@@ -104,45 +102,48 @@ function onPatch() {
     setStatus(ui.message, 'error', 'HTML을 파싱할 수 없어 Patch하지 않았습니다.');
     return;
   }
-  renderPreview(result.vnode);
   const oldVNode = history.current();
   const newVNode = result.vnode;
   const patches = diff(oldVNode, newVNode);
   if (patches.length === 0) {
-    showLog(oldVNode, patches);
+    showReceipt(oldVNode, patches, '변경 사항 없음');
     setStatus(ui.message, '', '변경 사항 없음 (history에 저장하지 않음)');
     ui.stats.textContent = '변경 사항 없음';
     checkConsistency({ label: '변경 없음' });
     return;
   }
-  if (!applyPatches(oldVNode, newVNode, patches)) return;
+  const title = `히스토리 ${history.index + 1} → ${history.index + 2}`;
+  if (!applyPatches(oldVNode, newVNode, patches, title)) return;
   history.push(newVNode);
+  labels.splice(history.index);
+  labels.push({ title: `Patch #${history.index}`, sub: `명령 ${patches.length}개` });
+  window.history.pushState({ i: history.index }, '');
   updateNav();
   setStatus(ui.message, '', `Patch 적용: 명령 ${patches.length}개 → history ${history.index + 1}번째로 저장`);
   checkConsistency({ label: 'Patch', newVNode });
 }
 
-function onMove(step) {
-  const target = history.peek(step);
+/** 히스토리의 i번째 상태로 이동한다 (diff → patch로 실제 영역을 맞춘다). */
+function jumpTo(i) {
+  const target = history.at(i);
   if (!target) return;
+  const from = history.index;
   const oldVNode = history.current();
   const patches = diff(oldVNode, target);
-  if (!applyPatches(oldVNode, target, patches)) return;
-  if (step < 0) history.back();
-  else history.forward();
+  if (!applyPatches(oldVNode, target, patches, `히스토리 ${from + 1} → ${i + 1}`)) return;
+  history.goTo(i);
   ui.editor.value = serialize(target);
   setStatus(ui.parseStatus, '', '');
-  renderPreview(target);
   updateNav();
-  setStatus(ui.message, '', `${step < 0 ? '뒤로' : '앞으로'} 이동: 명령 ${patches.length}개 적용`);
-  checkConsistency({ label: step < 0 ? '뒤로가기' : '앞으로가기', newVNode: target });
+  setStatus(ui.message, '', `히스토리 ${i + 1}번째 상태로 이동: 명령 ${patches.length}개 적용`);
+  checkConsistency({ label: `히스토리 ${i + 1}`, newVNode: target });
 }
 
 /**
  * diff 결과를 실제 영역에 patch하고 로그·노드 집계·강조를 표시한다. 실패하면 false.
  * patch()는 해석 단계에서 실패하면 DOM을 바꾸지 않는다(부분 적용 없음).
  */
-function applyPatches(oldVNode, newVNode, patches) {
+function applyPatches(oldVNode, newVNode, patches, title) {
   const before = takeSnapshot(realRoot);
   const changedTargets = collectChangedTargets(patches);
   try {
@@ -154,7 +155,7 @@ function applyPatches(oldVNode, newVNode, patches) {
   const { reused, created, removed } = compareSnapshots(before, realRoot);
   ui.stats.textContent =
     `재사용 ${reused.length} · 새로 만듦 ${created.length} · 제거 ${removed.length}  (Element+Text, 루트 포함)`;
-  showLog(oldVNode, patches);
+  showReceipt(oldVNode, patches, title);
   flash(changedTargets, created);
   return true;
 }
@@ -199,38 +200,59 @@ function flash(changedTargets, created) {
   }
 }
 
-function showLog(oldVNode, patches) {
-  ui.logBody.replaceChildren();
+/** Patch[]를 영수증 형태로 그린다. 각 항목에 KEY / INDEX 배지를 붙여 무엇으로 대상을 식별했는지 보여준다. */
+function showReceipt(oldVNode, patches, title) {
+  const box = ui.receipt;
+  box.replaceChildren();
+  const add = (cls, text, parent = box, tag = 'div') => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    el.textContent = text;
+    parent.append(el);
+    return el;
+  };
+  const hr = () => box.append(document.createElement('hr'));
+  add('rc-title', 'PATCH RECEIPT');
+  add('rc-sub', `${title ?? ''}  ${new Date().toLocaleTimeString('ko-KR')}`);
+  hr();
   if (patches.length === 0) {
     ui.logSummary.textContent = '';
-    ui.logBody.append(row(['변경 사항 없음'], 7));
+    add('', '변경 사항 없음');
     return;
   }
   const counts = countByType(patches);
-  ui.logSummary.textContent =
-    `명령 ${patches.length}개 — ` + Object.entries(counts).map(([t, n]) => `${t} ${n}`).join(', ');
+  ui.logSummary.textContent = `명령 ${patches.length}개`;
+  let byKey = 0;
+  let byIndex = 0;
   for (const r of toLogRows(oldVNode, patches)) {
-    const tr = document.createElement('tr');
-    for (const [text, cls] of [[r.order], [r.type, 'type'], [r.path], [r.target], [r.from], [r.to], [r.note]]) {
-      const td = document.createElement('td');
-      td.textContent = String(text);
-      if (cls) td.className = cls;
-      tr.append(td);
-    }
-    ui.logBody.append(tr);
+    if (r.by === 'KEY') byKey++;
+    else byIndex++;
+    const item = document.createElement('div');
+    item.className = 'rc-item';
+    const head = add('rc-head', '', item);
+    add(`rc-type t-${r.type}`, `#${r.order} ${r.type}`, head, 'span');
+    add(`rc-by ${r.by}`, r.by === 'KEY' ? `KEY=${r.key}` : 'INDEX', head, 'span');
+    add('', r.path, head, 'span');
+    add('rc-line', r.target, item);
+    add('rc-change', `${r.from}  →  ${r.to}`, item);
+    if (r.note) add('rc-line', `※ ${r.note}`, item);
+    box.append(item);
   }
-}
-
-function row(cells, colspan) {
-  const tr = document.createElement('tr');
-  for (const text of cells) {
-    const td = document.createElement('td');
-    td.textContent = text;
-    td.className = 'muted';
-    if (colspan) td.colSpan = colspan;
-    tr.append(td);
+  hr();
+  for (const [t, n] of Object.entries(counts)) {
+    const line = add('rc-total', '');
+    add(`t-${t}`, t, line, 'span');
+    add('', `x ${n}`, line, 'span');
   }
-  return tr;
+  hr();
+  const l1 = add('rc-total', '');
+  add('', 'KEY로 식별', l1, 'span');
+  add('', String(byKey), l1, 'span');
+  const l2 = add('rc-total', '');
+  add('', 'INDEX로 식별', l2, 'span');
+  add('', String(byIndex), l2, 'span');
+  hr();
+  add('rc-sub', 'KEY: data-key가 있는 노드(key로 짝지음) / INDEX: key 없음(위치·같은 type 순서로 짝지음)');
 }
 
 /**
@@ -280,6 +302,27 @@ function updateNav() {
   ui.pos.textContent = `${history.index + 1} / ${history.length}`;
   ui.back.disabled = !history.canBack;
   ui.forward.disabled = !history.canForward;
+  ui.historyList.replaceChildren();
+  for (let i = 0; i < history.length; i++) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    if (i === history.index) btn.className = 'current';
+    const no = document.createElement('span');
+    no.className = 'h-no';
+    no.textContent = `${i + 1}.`;
+    const name = document.createElement('span');
+    name.textContent = labels[i]?.title ?? '';
+    const sub = document.createElement('span');
+    sub.className = 'h-sub';
+    sub.textContent = labels[i]?.sub ?? '';
+    btn.append(no, name, sub);
+    btn.addEventListener('click', () => {
+      if (i !== history.index) window.history.go(i - history.index);
+    });
+    li.append(btn);
+    ui.historyList.append(li);
+  }
 }
 
 function setStatus(el, kind, text) {

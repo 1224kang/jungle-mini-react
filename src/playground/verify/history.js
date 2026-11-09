@@ -82,6 +82,12 @@ export function createHistory(initial) {
       const next = index + step;
       return next >= 0 && next < entries.length ? entries[next] : null;
     },
+    /** i번째로 이동한다. 범위 밖이면 이동하지 않고 null. */
+    goTo(i) {
+      if (!Number.isInteger(i) || i < 0 || i >= entries.length) return null;
+      index = i;
+      return entries[index];
+    },
     /** 한 칸 뒤로. 맨 앞이면 이동하지 않고 null. */
     back() {
       if (index === 0) return null;
