@@ -39,6 +39,7 @@ function diffNode(oldNode, newNode, path, patches) {
     return;
   }
   // ③ 종류가 다르면 비교하지 않고 통째로 교체 (하위 트리도 다르다고 가정)
+  // 종류가 같다는걸 보장
   if (oldNode.type !== newNode.type) {
     patches.push({ type: PATCH.REPLACE, path, node: newNode });
     return;
@@ -57,9 +58,9 @@ function diffNode(oldNode, newNode, path, patches) {
   diffChildren(oldNode.children, newNode.children, path, patches);
 }
 
-function diffProps(oldProps, newProps) {
-  const set = {};
-  const remove = [];
+function diffProps(oldProps, newProps) { //속성 비교
+  const set = {}; //새로 넣거나 값을 바꿀 것
+  const remove = []; //지울 것
 
   for (const [name, value] of Object.entries(newProps)) {
     if (oldProps[name] !== value) set[name] = value;
@@ -81,13 +82,13 @@ function diffProps(oldProps, newProps) {
 function diffChildren(oldChildren, newChildren, path, patches) {
   const common = Math.min(oldChildren.length, newChildren.length);
 
-  for (let i = 0; i < common; i++) {
+  for (let i = 0; i < common; i++) { //구간 1: 짝이 있는 번호
     diffNode(oldChildren[i], newChildren[i], [...path, i], patches);
   }
-  for (let i = common; i < newChildren.length; i++) {
+  for (let i = common; i < newChildren.length; i++) { //구간 2: 새 쪽에만 있는 번호(CREATE)
     diffNode(undefined, newChildren[i], [...path, i], patches);
   }
-  for (let i = oldChildren.length - 1; i >= common; i--) {
+  for (let i = oldChildren.length - 1; i >= common; i--) { //구간 3: 이전 쪽에만 있는 번호(REMOVE)
     diffNode(oldChildren[i], undefined, [...path, i], patches);
   }
 }

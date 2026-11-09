@@ -22,9 +22,11 @@ jungle-mini-react/
 │  ├─ lib/                 # Mini React 본체
 │  │  ├─ vdom/             # VNode 생성, 실제 DOM → Virtual DOM 변환
 │  │  ├─ reconcile/        # diff(변경 계산), patch(실제 DOM 반영)
-│  │  ├─ dom/              # VNode → 실제 DOM 노드 생성
+│  │  ├─ dom/              # VNode → 실제 DOM 노드 생성 (+ 이벤트 props)
+│  │  ├─ component/        # FunctionComponent: hooks 배열, mount, update (Phase 2)
 │  │  └─ hooks/            # useState, useEffect, useMemo (Phase 2)
 │  └─ app/                 # Mini React로 만든 데모 앱
+│     └─ phase2/           # 훅 실험실 데모 (phase2.html)
 ├─ tests/                  # 기능별 테스트
 ├─ scripts/                # 검증 등 보조 스크립트
 ├─ Dockerfile
@@ -94,7 +96,7 @@ docker compose run --rm --service-ports dev
 
 | 명령어 | 설명 |
 |---|---|
-| `npm run dev` | 개발 서버 실행 → http://localhost:5173 |
+| `npm run dev` | 개발 서버 실행 → http://localhost:5173 (Phase 1), http://localhost:5173/phase2.html (Phase 2) |
 | `npm test` | 테스트 감시 모드 (파일 저장 시 자동 재실행) |
 | `npm run test:run` | 테스트 1회 실행 (PR 전 확인용) |
 | `npx vitest run tests/diff.test.js` | 특정 테스트 파일만 실행 |

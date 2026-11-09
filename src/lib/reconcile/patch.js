@@ -17,8 +17,8 @@ export function patch(container, patches) {
       case PATCH.CREATE: {
         const parent = findNode(container, p.path.slice(0, -1));
         const index = p.path[p.path.length - 1];
-        const el = createDom(p.node);
-        parent.insertBefore(el, parent.childNodes[index] ?? null);
+        const el = createDom(p.node); //VNODE -> 실제 노드
+        parent.insertBefore(el, parent.childNodes[index] ?? null); //맨 끝자리에 노드 추가
         changed.push({ type: p.type, node: el });
         break;
       }

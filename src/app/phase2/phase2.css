@@ -1,0 +1,166 @@
+/* ── Phase 2 데모 전용 스타일 (style.css 위에 덧씌움) ── */
+
+.lab-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.panel {
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.panel h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.big-number {
+  margin: 4px 0 8px;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: 0 0 8px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.caption {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.panel button,
+.small {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.panel button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.small {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+}
+
+.panel input[type='text'] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.stats li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.stats span {
+  color: var(--muted);
+}
+
+/* ── 인스펙터 ── */
+.render-count {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.render-count strong {
+  margin-left: 6px;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.inspector-title {
+  margin: 16px 0 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.hooks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 0.8rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.hooks-table th,
+.hooks-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.hooks-table td:nth-child(-n + 2) {
+  white-space: nowrap;
+}
+
+.hooks-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.kind {
+  font-weight: 700;
+}
+
+.kind-state { color: #2563eb; }
+.kind-memo { color: #d97706; }
+.kind-effect { color: #16a34a; }
+
+.event-log {
+  max-height: 320px;
+  margin: 0;
+  padding-left: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.event-log li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.badge-render { background: #2563eb; }
+.badge-memo { background: #d97706; }
+.badge-effect { background: #16a34a; }
+.badge-cleanup { background: #9333ea; }
+.badge-error { background: #dc2626; }

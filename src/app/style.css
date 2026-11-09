@@ -203,3 +203,21 @@ body {
 .badge-replace { background: #9333ea; }
 .badge-text { background: #2563eb; }
 .badge-props { background: #d97706; }
+
+/* ── 페이지 이동 (Phase 1 ↔ Phase 2) ── */
+.page-nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.page-nav a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.page-nav a[aria-current='page'] {
+  color: var(--text);
+  font-weight: 700;
+}
