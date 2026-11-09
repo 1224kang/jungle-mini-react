@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini React · Phase 1</title>
+<link rel="stylesheet" href="./src/app/styles.css">
+</head>
+<body>
+<main>
+  <h1>Mini React · Phase 1</h1>
+  <p class="sub">실제 DOM → Virtual DOM → Diff → Patch → State History</p>
+
+  <section class="areas">
+    <div class="panel">
+      <h2>실제 영역</h2>
+      <p class="hint">아래 HTML 이 샘플입니다. 페이지가 로드되면 이 DOM 을 Virtual DOM 으로 변환합니다.</p>
+      <div id="actual" class="box">
+        <article class="card" id="sample">
+          <h2>장보기</h2>
+          <p>오늘 살 것: <b>3가지</b></p>
+          <ul class="list">
+            <li key="a">사과</li>
+            <li key="b">바나나</li>
+            <li key="c">포도</li>
+          </ul>
+          <a href="https://example.com">가게 링크</a>
+          <button type="button">구매</button>
+        </article>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>테스트 영역</h2>
+      <p class="hint">Virtual DOM 으로 렌더링된 화면입니다. 직접 고치거나, 아래 HTML 코드를 고치세요.</p>
+      <div class="quick" role="group" aria-label="예시 편집">
+        <button type="button" data-edit="text">텍스트 바꾸기</button>
+        <button type="button" data-edit="attr">속성 바꾸기</button>
+        <button type="button" data-edit="tag">태그 바꾸기</button>
+        <button type="button" data-edit="add">항목 추가</button>
+        <button type="button" data-edit="remove">항목 삭제</button>
+        <button type="button" data-edit="reorder">순서 뒤집기</button>
+      </div>
+      <div id="test-pane" class="box" contenteditable="true" spellcheck="false"></div>
+      <h3>HTML 코드</h3>
+      <textarea id="test-code" spellcheck="false" aria-label="테스트 영역 HTML 코드"></textarea>
+      <p id="dirty" class="log"></p>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="btn-back" type="button">뒤로가기</button>
+    <button id="btn-patch" type="button">Patch</button>
+    <button id="btn-forward" type="button">앞으로가기</button>
+    <span id="history-view" class="history" aria-label="State History"></span>
+  </div>
+  <p id="log" class="log"></p>
+
+  <section class="panel">
+    <h2>이번 패치</h2>
+    <p id="patch-summary" class="log">아직 Patch 하지 않았습니다.</p>
+    <ul id="patch-list" class="patches"></ul>
+  </section>
+</main>
+<script type="module" src="./src/app/main.js"></script>
+<script>
+  // 모듈 스크립트가 실행되지 않으면(file:// 로 열었거나 dev 서버가 꺼진 경우) 버튼이 죽어 있으므로 이유를 알려 줍니다.
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (window.__miniReactBooted) return;
+      var box = document.createElement('p');
+      box.style.cssText = 'background:#fde8e4;color:#7a1f10;padding:10px 14px;border-radius:8px;';
+      box.textContent = location.protocol === 'file:'
+        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. 컨테이너에서 npm run dev 후 http://localhost:5173/CDH/index.html 로 접속하세요.'
+        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하고, dev 서버를 재시작한 뒤 Ctrl+Shift+R 로 새로고침하세요.';
+      document.querySelector('main').prepend(box);
+    }, 500);
+  });
+</script>
+</body>
+</html>

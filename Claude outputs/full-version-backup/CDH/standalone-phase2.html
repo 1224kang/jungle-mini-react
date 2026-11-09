@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini React · Phase 2</title>
+<style>
+:root {
+  --bg: #fafaf7;
+  --fg: #1d1d1f;
+  --muted: #6b6b6b;
+  --rule: #dcd9cf;
+  --accent: #2b5fd9;
+  --tile: #ffffff;
+  --code: #f2f0e9;
+  --flash: #ffe58a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616;
+    --fg: #ecebe6;
+    --muted: #9a9890;
+    --rule: #33322e;
+    --accent: #7ea6ff;
+    --tile: #1d1c1a;
+    --code: #222120;
+    --flash: #7a6a1f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Noto Sans KR", system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { font-size: 1.05rem; margin: 0 0 4px; }
+h3 { font-size: 0.95rem; margin: 16px 0 6px; color: var(--muted); }
+
+.sub { color: var(--muted); margin: 0 0 24px; }
+.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 10px; }
+
+.areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--tile);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.areas .panel { margin-bottom: 0; }
+
+.box {
+  min-height: 160px;
+  border: 1px dashed var(--muted);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+#test-pane { outline: none; }
+#test-pane:focus { border-color: var(--accent); border-style: solid; }
+
+textarea {
+  width: 100%;
+  min-height: 200px;
+  font: 0.88rem ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--fg);
+  background: var(--code);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.quick, .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick { margin-bottom: 10px; }
+.controls { margin: 16px 0 8px; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.4; cursor: default; }
+button.attention { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+.history { display: inline-flex; gap: 6px; margin-left: 8px; }
+.chip {
+  padding: 2px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.chip.on { border-color: var(--accent); color: var(--fg); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.log { color: var(--muted); font-size: 0.92rem; min-height: 1.5em; margin: 6px 0; }
+
+/* 실제 영역에서 방금 바뀐 부분 */
+/* (강조는 app.js 의 el.animate 로 처리. class 를 바꾸지 않아 DOM 과 VNode 가 어긋나지 않는다) */
+
+/* 예시 편집으로 바꾸는 속성 */
+.highlight { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.patches { list-style: none; margin: 8px 0 0; padding: 0; font-size: 0.9rem; }
+.patches li { padding: 4px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
+.op {
+  display: inline-block;
+  min-width: 74px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font: 0.78rem ui-monospace, Consolas, monospace;
+  text-align: center;
+  background: var(--code);
+}
+.op-text { color: #1f8a4c; }
+.op-props { color: #b7791f; }
+.op-replace { color: #c2412d; }
+.op-remove { color: #c2412d; }
+.op-create { color: #2b5fd9; }
+.op-move { color: #8a4fd9; }
+
+@media (max-width: 720px) {
+  .areas { grid-template-columns: 1fr; }
+}
+
+/* Phase 2 데모 전용 스타일. 색 변수와 기본 틀은 ../app/styles.css 를 함께 불러서 씁니다. */
+.layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+
+.todo-app > h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.todo-app button, .todo-app input[type="text"] {
+  font: inherit; color: inherit; background: var(--tile); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 12px;
+}
+.todo-app button { cursor: pointer; }
+.todo-app button:hover:not(:disabled) { border-color: var(--accent); }
+.todo-app button:disabled { opacity: 0.45; cursor: not-allowed; }
+.todo-app input[type="text"] { flex: 1; min-width: 0; }
+
+.todo-form { display: flex; gap: 8px; margin-bottom: 10px; }
+.filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.filters button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.todos { list-style: none; margin: 0 0 10px; padding: 0; }
+.todo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+.todo label { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; min-width: 0; }
+.todo .text { overflow-wrap: anywhere; }
+.todo.done .text { text-decoration: line-through; color: var(--muted); }
+.todo .x { padding: 0 9px; line-height: 1.4; }
+.empty { color: var(--muted); padding: 10px 4px; margin: 0 0 10px; }
+
+.stats { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 10px; }
+.bar { flex: 1; min-width: 80px; height: 8px; border-radius: 4px; background: var(--code); overflow: hidden; }
+.bar i { display: block; height: 100%; background: #1f8a4c; transition: width 0.2s; }
+
+.timer, .burst { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule); font-size: 0.92rem; }
+.timer strong { font-variant-numeric: tabular-nums; font-size: 1.2rem; min-width: 4.2ch; }
+
+.dbg table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.dbg th, .dbg td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; word-break: break-all; }
+.dbg td:first-child, .dbg th:first-child { width: 2.5em; }
+.dbg ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.85rem; max-height: 180px; overflow: auto; }
+.dbg li { padding: 3px 0; border-bottom: 1px solid var(--rule); word-break: break-all; }
+.dbg .big { font-size: 1.4rem; font-weight: 700; }
+.dbg label.switch { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; margin: 6px 0; }
+.op-handler { color: var(--muted); }
+.dbg td:nth-child(2), .dbg th:nth-child(2) { width: 4.5em; white-space: nowrap; word-break: normal; }
+
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini React · Phase 2</h1>
+  <p class="sub">Component · State · Hooks (useState / useEffect / useMemo) → Virtual DOM → Diff → Patch</p>
+
+  <div class="layout">
+    <div class="panel">
+      <p class="hint">상태는 루트 컴포넌트(TodoApp)에만 있고, 자식은 props 만 받는 순수 함수입니다. 입력·클릭하면 바뀐 부분만 갱신됩니다 (노랗게 깜빡임).</p>
+      <div id="app"></div>
+    </div>
+
+    <aside class="panel dbg" aria-label="디버그 패널">
+      <h2>안에서 일어나는 일</h2>
+      <p class="hint">렌더 횟수 <span id="dbg-renders" class="big">0</span></p>
+      <label class="switch"><input id="batch-toggle" type="checkbox"> batching (같은 틱의 setState 를 모아 1번만 렌더)</label>
+      <p class="hint">켜고 끄고 "+1 을 3번 호출" 을 눌러 렌더 횟수를 비교해 보세요.</p>
+
+      <h3>이번 렌더</h3>
+      <p id="dbg-summary" class="log"></p>
+      <ul id="dbg-patches" class="patches"></ul>
+
+      <h3>hooks 배열 (칸 번호 = Hook 호출 순서)</h3>
+      <table>
+        <thead><tr><th>#</th><th>종류</th><th>값</th></tr></thead>
+        <tbody id="dbg-hooks"></tbody>
+      </table>
+
+      <h3>useMemo 계산 횟수</h3>
+      <p id="dbg-memo" class="log"></p>
+
+      <h3>useEffect 로그</h3>
+      <ul id="dbg-log"></ul>
+    </aside>
+  </div>
+</main>
+<script>
+(() => {
+  // CDH/src/lib/vdom/vnode.js
+  function h(type, props = null, ...children) {
+    return {
+      type,
+      props: props ?? {},
+      children: normalizeChildren(children)
+    };
+  }
+  function normalizeChildren(children) {
+    const out = [];
+    for (const child of children.flat(Infinity)) {
+      if (child === null || child === void 0 || typeof child === "boolean") continue;
+      out.push(typeof child === "number" ? String(child) : child);
+    }
+    return out;
+  }
+  function isVNode(value) {
+    return typeof value === "object" && value !== null && typeof value.type === "string";
+  }
+  function keyOf(value) {
+    return isVNode(value) ? value.props.key : void 0;
+  }
+  function countNodes(v) {
+    if (typeof v === "string") return 1;
+    return 1 + v.children.reduce((sum, c) => sum + countNodes(c), 0);
+  }
+
+  // CDH/src/lib/dom/props.js
+  var ALIAS = { className: "class", htmlFor: "for" };
+  function record(el) {
+    if (!el.__mini) el.__mini = { handlers: {}, listeners: {}, controlled: {} };
+    return el.__mini;
+  }
+  function isEventProp(name, value) {
+    return /^on[A-Z]/.test(name) || name.startsWith("on") && typeof value === "function";
+  }
+  var CHANGE_EVENT_TAGS = /* @__PURE__ */ new Set(["SELECT"]);
+  var CHANGE_EVENT_INPUT_TYPES = /* @__PURE__ */ new Set(["checkbox", "radio", "file"]);
+  function eventType(el, name) {
+    const raw = name.slice(2).toLowerCase();
+    if (raw !== "change") return raw;
+    if (CHANGE_EVENT_TAGS.has(el.tagName)) return "change";
+    if (el.tagName === "INPUT" && CHANGE_EVENT_INPUT_TYPES.has(el.type)) return "change";
+    return "input";
+  }
+  function setHandler(el, name, fn) {
+    const rec = record(el);
+    if (typeof fn !== "function") {
+      delete rec.handlers[name];
+      return;
+    }
+    const type = eventType(el, name);
+    rec.handlers[name] = { type, fn };
+    if (rec.listeners[type]) return;
+    const listener = (event) => {
+      for (const h2 of Object.values(rec.handlers)) if (h2.type === event.type) h2.fn(event);
+      queueMicrotask(() => syncControlled(el));
+    };
+    rec.listeners[type] = listener;
+    el.addEventListener(type, listener);
+  }
+  function isFormControl(el) {
+    return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT";
+  }
+  function isPropertyProp(el, name) {
+    if (name === "value") return isFormControl(el);
+    if (name === "checked") return el.tagName === "INPUT";
+    return false;
+  }
+  function setProperty(el, name, value) {
+    const rec = record(el);
+    if (value === null || value === void 0) {
+      delete rec.controlled[name];
+      if (name === "value") el.value = "";
+      else el.checked = false;
+      return;
+    }
+    rec.controlled[name] = name === "checked" ? Boolean(value) : String(value);
+    syncControlled(el);
+  }
+  function syncControlled(el) {
+    const c = el.__mini?.controlled;
+    if (!c) return;
+    if ("value" in c && el.value !== c.value) el.value = c.value;
+    if ("checked" in c && el.checked !== c.checked) el.checked = c.checked;
+  }
+  function styleToText(style) {
+    return Object.entries(style).filter(([, v]) => v !== null && v !== void 0 && v !== false && v !== "").map(([k, v]) => `${k.startsWith("--") ? k : k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${v}`).join(";");
+  }
+  function setAttr(el, name, value) {
+    const attr = ALIAS[name] ?? name;
+    if (name === "style" && value && typeof value === "object") value = styleToText(value);
+    if (value === null || value === void 0) {
+      el.removeAttribute(attr);
+    } else if (typeof value === "boolean") {
+      if (attr.startsWith("aria-") || attr.startsWith("data-")) el.setAttribute(attr, String(value));
+      else if (value) el.setAttribute(attr, "");
+      else el.removeAttribute(attr);
+    } else {
+      el.setAttribute(attr, String(value));
+    }
+  }
+  function setOne(el, name, value) {
+    if (isEventProp(name, value)) setHandler(el, name, value);
+    else if (isPropertyProp(el, name)) setProperty(el, name, value);
+    else setAttr(el, name, value);
+  }
+  function applyAttrProps(el, props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (!isEventProp(k, v) && !isPropertyProp(el, k)) setAttr(el, k, v);
+    }
+  }
+  function applyLateProps(el, props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (isEventProp(k, v) || isPropertyProp(el, k)) setOne(el, k, v);
+    }
+  }
+  function patchProps(el, set, remove) {
+    let domChanged = false;
+    for (const name of remove) {
+      if (isEventProp(name, null) || el.__mini?.handlers[name]) setHandler(el, name, null);
+      else if (isPropertyProp(el, name)) {
+        setProperty(el, name, null);
+        domChanged = true;
+      } else {
+        setAttr(el, name, null);
+        domChanged = true;
+      }
+    }
+    const entries = Object.entries(set);
+    for (const [k, v] of entries) {
+      if (!isEventProp(k, v) && !isPropertyProp(el, k)) {
+        setAttr(el, k, v);
+        domChanged = true;
+      }
+    }
+    for (const [k, v] of entries) {
+      if (isPropertyProp(el, k)) {
+        setOne(el, k, v);
+        domChanged = true;
+      }
+    }
+    for (const [k, v] of entries) if (isEventProp(k, v)) setOne(el, k, v);
+    return domChanged;
+  }
+
+  // CDH/src/lib/dom/create.js
+  function createDOM(v) {
+    if (typeof v === "string") return document.createTextNode(v);
+    const el = document.createElement(v.type);
+    applyAttrProps(el, v.props);
+    for (const child of v.children) el.appendChild(createDOM(child));
+    applyLateProps(el, v.props);
+    return el;
+  }
+
+  // CDH/src/lib/reconcile/diff.js
+  function typeOf(v) {
+    return typeof v === "string" ? "#text" : v.type;
+  }
+  function sameType(a, b) {
+    return typeOf(a) === typeOf(b);
+  }
+  function diff(oldRoot, newRoot) {
+    if (!sameType(oldRoot, newRoot)) {
+      return [{ op: "REPLACE", path: [], value: newRoot }];
+    }
+    return diffNode(oldRoot, newRoot, []);
+  }
+  function diffNode(oldN, newN, path) {
+    if (typeof oldN === "string") {
+      return oldN === newN ? [] : [{ op: "TEXT", path, value: newN }];
+    }
+    const patches = [];
+    const props = diffProps(oldN.props, newN.props);
+    if (props) patches.push({ op: "PROPS", path, ...props });
+    patches.push(...diffChildren(oldN.children, newN.children, path));
+    return patches;
+  }
+  function diffProps(oldProps, newProps) {
+    const set = {};
+    const remove = [];
+    for (const k of Object.keys(newProps)) {
+      if (!sameProp(oldProps[k], newProps[k])) set[k] = newProps[k];
+    }
+    for (const k of Object.keys(oldProps)) {
+      if (!(k in newProps)) remove.push(k);
+    }
+    return Object.keys(set).length || remove.length ? { set, remove } : null;
+  }
+  function sameProp(a, b) {
+    if (a === b) return true;
+    if (!isPlain(a) || !isPlain(b)) return false;
+    const ka = Object.keys(a);
+    const kb = Object.keys(b);
+    return ka.length === kb.length && ka.every((k) => k in b && a[k] === b[k]);
+  }
+  function isPlain(v) {
+    return typeof v === "object" && v !== null && !Array.isArray(v);
+  }
+  function hasKey(v) {
+    return isVNode(v) && v.props.key !== void 0;
+  }
+  function diffChildren(oldKids, newKids, path) {
+    const keyed = oldKids.some(hasKey) || newKids.some(hasKey);
+    const matchOf = newKids.map(() => -1);
+    const usedOld = oldKids.map(() => false);
+    if (keyed) {
+      const oldByKey = /* @__PURE__ */ new Map();
+      oldKids.forEach((c, i) => {
+        if (hasKey(c)) oldByKey.set(keyOf(c), i);
+      });
+      newKids.forEach((c, j) => {
+        if (!hasKey(c)) return;
+        const i = oldByKey.get(keyOf(c));
+        if (i !== void 0 && !usedOld[i]) {
+          matchOf[j] = i;
+          usedOld[i] = true;
+        }
+      });
+    } else {
+      newKids.forEach((_, j) => {
+        if (j < oldKids.length) {
+          matchOf[j] = j;
+          usedOld[j] = true;
+        }
+      });
+    }
+    const patches = [];
+    oldKids.forEach((_, i) => {
+      if (!usedOld[i]) patches.push({ op: "REMOVE", path: [...path, i] });
+    });
+    newKids.forEach((c, j) => {
+      const i = matchOf[j];
+      if (i === -1) return;
+      const old = oldKids[i];
+      if (sameType(old, c)) patches.push(...diffNode(old, c, [...path, i]));
+      else patches.push({ op: "REPLACE", path: [...path, i], value: c });
+    });
+    const moved = newKids.map(() => false);
+    if (keyed) {
+      let lastPlaced = 0;
+      newKids.forEach((_, j) => {
+        const i = matchOf[j];
+        if (i === -1) return;
+        if (i < lastPlaced) moved[j] = true;
+        else lastPlaced = i;
+      });
+    }
+    const plan = newKids.map(
+      (c, j) => matchOf[j] === -1 ? { create: c } : { from: matchOf[j], moved: moved[j] }
+    );
+    const structural = usedOld.some((u) => !u) || plan.some((p) => "create" in p || p.moved);
+    if (structural) patches.push({ op: "CHILDREN", path, plan });
+    return patches;
+  }
+
+  // CDH/src/lib/reconcile/patch.js
+  function nodeAt(mount, path) {
+    let node = mount.firstChild;
+    for (const i of path) node = node.childNodes[i];
+    return node;
+  }
+  function applyPatches(mount, patches) {
+    const touched = /* @__PURE__ */ new Set();
+    if (patches.length === 0) return { touched };
+    const targets = patches.map((p) => {
+      const node = nodeAt(mount, p.path);
+      return p.op === "CHILDREN" ? { p, node, snapshot: Array.from(node.childNodes) } : { p, node };
+    });
+    const propNodes = [];
+    for (const { p, node } of targets) {
+      if (p.op === "TEXT") {
+        node.textContent = p.value;
+        touched.add(node);
+      }
+      if (p.op === "PROPS") {
+        if (patchProps(node, p.set, p.remove)) touched.add(node);
+        propNodes.push(node);
+      }
+    }
+    const replaced = /* @__PURE__ */ new Map();
+    for (const { p, node } of targets) {
+      if (p.op !== "REPLACE") continue;
+      const fresh = createDOM(p.value);
+      node.replaceWith(fresh);
+      replaced.set(node, fresh);
+      touched.add(fresh);
+    }
+    for (const { p, node } of targets) {
+      if (p.op !== "REMOVE") continue;
+      touched.add(node.parentNode);
+      node.remove();
+    }
+    for (const { p, node, snapshot } of targets) {
+      if (p.op === "CHILDREN") placeChildren(node, snapshot, p.plan, replaced, touched);
+    }
+    for (const node of propNodes) syncControlled(node);
+    return { touched };
+  }
+  function placeChildren(parent, snapshot, plan, replaced, touched) {
+    const nodes = plan.map((entry) => {
+      if ("create" in entry) return createDOM(entry.create);
+      const old = snapshot[entry.from];
+      return replaced.get(old) ?? old;
+    });
+    for (let j = plan.length - 1; j >= 0; j--) {
+      const entry = plan[j];
+      if ("create" in entry || entry.moved) {
+        parent.insertBefore(nodes[j], nodes[j + 1] ?? null);
+        touched.add(nodes[j]);
+      }
+    }
+  }
+
+  // CDH/src/lib/hooks/runtime.js
+  var current = null;
+  var childDepth = 0;
+  function runWithComponent(component, fn) {
+    const prev = current;
+    current = component;
+    try {
+      return fn();
+    } finally {
+      current = prev;
+    }
+  }
+  function runAsChild(fn) {
+    childDepth++;
+    try {
+      return fn();
+    } finally {
+      childDepth--;
+    }
+  }
+  function getCurrent(hookName) {
+    if (childDepth > 0) {
+      throw new Error(
+        `${hookName}: Hook \uC740 \uB8E8\uD2B8 \uCEF4\uD3EC\uB10C\uD2B8\uC5D0\uC11C\uB9CC \uC4F8 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC790\uC2DD \uCEF4\uD3EC\uB10C\uD2B8\uB294 \uC0C1\uD0DC \uC5C6\uC774 props \uB9CC \uC0AC\uC6A9\uD558\uC138\uC694 (Lifting State Up).`
+      );
+    }
+    if (!current) {
+      throw new Error(`${hookName}: Hook \uC740 \uB8E8\uD2B8 FunctionComponent \uAC00 \uB80C\uB354\uB418\uB294 \uB3D9\uC548\uC5D0\uB9CC \uD638\uCD9C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`);
+    }
+    return current;
+  }
+
+  // CDH/src/lib/component/resolve.js
+  var MAX_DEPTH = 200;
+  function expand(node, depth = 0) {
+    if (depth > MAX_DEPTH) throw new Error("\uCEF4\uD3EC\uB10C\uD2B8\uAC00 \uB108\uBB34 \uAE4A\uAC8C \uC911\uCCA9\uB418\uC5C8\uC2B5\uB2C8\uB2E4 (\uC790\uAE30 \uC790\uC2E0\uC744 \uBB34\uD55C\uD788 \uBD80\uB974\uB294 \uAC83\uC740 \uC544\uB2CC\uAC00\uC694?)");
+    if (node === null || node === void 0 || typeof node === "boolean") return [];
+    if (typeof node === "number") return [String(node)];
+    if (typeof node === "string") return [node];
+    if (Array.isArray(node)) return node.flatMap((n) => expand(n, depth + 1));
+    if (typeof node !== "object" || typeof node.type !== "string" && typeof node.type !== "function") {
+      throw new TypeError(`\uB80C\uB354\uD560 \uC218 \uC5C6\uB294 \uAC12\uC785\uB2C8\uB2E4: ${String(node)}`);
+    }
+    if (typeof node.type === "function") {
+      const { key, ...rest } = node.props ?? {};
+      const out = runAsChild(() => node.type({ ...rest, children: node.children ?? [] }));
+      let nodes = expand(out, depth + 1);
+      if (key !== void 0 && nodes.length === 1 && typeof nodes[0] === "object" && nodes[0].props.key === void 0) {
+        nodes = [{ ...nodes[0], props: { ...nodes[0].props, key } }];
+      }
+      return nodes;
+    }
+    return [
+      {
+        type: node.type,
+        props: node.props ?? {},
+        children: (node.children ?? []).flatMap((c) => expand(c, depth + 1))
+      }
+    ];
+  }
+  function resolveTree(out) {
+    const nodes = expand(out);
+    if (nodes.length !== 1) {
+      throw new Error(`\uB8E8\uD2B8 \uCEF4\uD3EC\uB10C\uD2B8\uB294 \uC815\uD655\uD788 \uD558\uB098\uC758 \uC694\uC18C\uB97C \uBC18\uD658\uD574\uC57C \uD569\uB2C8\uB2E4 (\uBC1B\uC740 \uAC1C\uC218: ${nodes.length}).`);
+    }
+    return nodes[0];
+  }
+
+  // CDH/src/lib/component/function-component.js
+  var RENDER_LIMIT = 25;
+  var UPDATE_LIMIT = 100;
+  var FunctionComponent = class {
+    /**
+     * @param {(props: object) => any} renderFn  루트 함수형 컴포넌트 (Hook 사용 가능)
+     * @param {{ props?: object, batch?: boolean, onCommit?: (info: object) => void }} [options]
+     */
+    constructor(renderFn, options = {}) {
+      if (typeof renderFn !== "function") throw new TypeError("FunctionComponent: \uD568\uC218\uD615 \uCEF4\uD3EC\uB10C\uD2B8\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+      this.renderFn = renderFn;
+      this.props = options.props ?? {};
+      this.batch = options.batch ?? true;
+      this.onCommit = options.onCommit ?? null;
+      this.hooks = [];
+      this.idx = 0;
+      this.hookCount = null;
+      this.pendingEffects = [];
+      this.container = null;
+      this.tree = null;
+      this.mounted = false;
+      this.renderCount = 0;
+      this.lastCommit = null;
+      this.phase = "idle";
+      this.dirty = false;
+      this.rerunRequested = false;
+      this.scheduled = false;
+    }
+    // 처음 렌더: Virtual DOM 을 만들어 container 안에 실제 DOM 으로 그립니다.
+    mount(container, props) {
+      if (this.mounted) throw new Error("mount(): \uC774\uBBF8 mount \uB41C \uCEF4\uD3EC\uB10C\uD2B8\uC785\uB2C8\uB2E4.");
+      if (!container) throw new TypeError("mount(): container \uC694\uC18C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+      if (props !== void 0) this.props = props;
+      this.container = container;
+      this.mounted = true;
+      try {
+        this.run();
+      } catch (e) {
+        this.mounted = false;
+        this.tree = null;
+        throw e;
+      }
+      return this;
+    }
+    // 상태가 바뀐 뒤 다시 렌더: 새 Virtual DOM → diff → patch. (props 를 주면 루트 props 도 교체)
+    update(nextProps) {
+      if (!this.mounted) throw new Error("update(): \uBA3C\uC800 mount() \uD574\uC57C \uD569\uB2C8\uB2E4.");
+      if (nextProps !== void 0) this.props = nextProps;
+      this.scheduled = false;
+      if (this.phase !== "idle") {
+        this.rerunRequested = true;
+        return;
+      }
+      this.run();
+    }
+    // 배치 대기 중인 갱신이 있으면 지금 바로 실행 (테스트에서 await 없이 확인할 때).
+    flush() {
+      if (this.scheduled) this.update();
+    }
+    // 컴포넌트 제거: 모든 effect 의 cleanup 을 실행하고 DOM 을 비웁니다.
+    unmount() {
+      if (!this.mounted) return;
+      if (this.phase !== "idle") throw new Error("unmount(): \uB80C\uB354 \uB3C4\uC911\uC5D0\uB294 unmount \uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      this.mounted = false;
+      this.scheduled = false;
+      const errors = [];
+      for (const slot of this.hooks) {
+        if (slot?.kind === "effect" && typeof slot.cleanup === "function") {
+          try {
+            slot.cleanup();
+          } catch (e) {
+            errors.push(e);
+          }
+          slot.cleanup = void 0;
+        }
+      }
+      this.container.replaceChildren();
+      this.tree = null;
+      if (errors.length) throw errors[0];
+    }
+    // ───────────── Hook 이 쓰는 내부 API ─────────────
+    // 이번 렌더의 "다음 칸" 을 줍니다. Hook 규칙(호출 순서/개수)을 여기서 검사합니다.
+    nextSlot(kind, hookName) {
+      const index = this.idx++;
+      if (this.hookCount !== null && index >= this.hookCount) {
+        throw new Error(`${hookName}: \uC774\uC804 \uB80C\uB354\uBCF4\uB2E4 Hook \uC774 \uB354 \uB9CE\uC774 \uD638\uCD9C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. Hook \uC744 \uC870\uAC74\uBB38/\uBC18\uBCF5\uBB38 \uC548\uC5D0\uC11C \uC4F0\uC9C0 \uB9C8\uC138\uC694.`);
+      }
+      const prev = this.hooks[index];
+      if (prev && prev.kind !== kind) {
+        throw new Error(
+          `${hookName}: ${index}\uBC88\uC9F8 Hook \uC774 \uC774\uC804 \uB80C\uB354\uC5D0\uC11C\uB294 ${prev.kind} \uC600\uC2B5\uB2C8\uB2E4. Hook \uD638\uCD9C \uC21C\uC11C\uB294 \uB9E4 \uB80C\uB354 \uAC19\uC544\uC57C \uD569\uB2C8\uB2E4.`
+        );
+      }
+      return { index, prev };
+    }
+    // setState 가 부릅니다: "상태가 바뀌었으니 다시 그려 주세요".
+    scheduleUpdate() {
+      if (!this.mounted) return;
+      if (this.phase === "render") {
+        this.dirty = true;
+        return;
+      }
+      if (this.phase !== "idle") {
+        this.rerunRequested = true;
+        return;
+      }
+      if (!this.batch) {
+        this.update();
+        return;
+      }
+      if (this.scheduled) return;
+      this.scheduled = true;
+      queueMicrotask(() => {
+        if (!this.scheduled) return;
+        this.scheduled = false;
+        this.update();
+      });
+    }
+    // ───────────── 내부 구현 ─────────────
+    // 렌더 → 커밋 → effect 를 한 번 하고, 그 사이 setState 요청이 있었으면 한 번 더 반복합니다.
+    run() {
+      let runs = 0;
+      do {
+        this.rerunRequested = false;
+        if (++runs > UPDATE_LIMIT) {
+          throw new Error("\uAC31\uC2E0\uC774 \uB108\uBB34 \uB9CE\uC774 \uBC18\uBCF5\uB418\uC5C8\uC2B5\uB2C8\uB2E4. useEffect \uC548\uC5D0\uC11C deps \uC5C6\uC774 setState \uB97C \uBD80\uB974\uACE0 \uC788\uC9C0 \uC54A\uC740\uAC00\uC694?");
+        }
+        try {
+          const tree = this.renderTree();
+          this.phase = "commit";
+          this.commit(tree);
+          this.phase = "effects";
+          this.runEffects();
+        } finally {
+          this.phase = "idle";
+        }
+      } while (this.rerunRequested && this.mounted);
+    }
+    // 컴포넌트 함수를 실행해 새 Virtual DOM 을 얻습니다. 렌더 중 setState 가 불리면 버리고 다시 실행합니다.
+    renderTree() {
+      for (let tries = 0; ; tries++) {
+        if (tries >= RENDER_LIMIT) {
+          throw new Error("\uB80C\uB354 \uC911 setState \uAC00 \uB108\uBB34 \uB9CE\uC774 \uBC18\uBCF5\uB418\uC5C8\uC2B5\uB2C8\uB2E4 (\uBB34\uD55C \uB8E8\uD504?). setState \uB294 \uC774\uBCA4\uD2B8\uB098 effect \uC548\uC5D0\uC11C \uBD80\uB974\uC138\uC694.");
+        }
+        this.idx = 0;
+        this.pendingEffects = [];
+        this.dirty = false;
+        this.phase = "render";
+        let tree;
+        try {
+          const out = runWithComponent(this, () => this.renderFn(this.props));
+          this.checkHookCount();
+          tree = resolveTree(out);
+        } catch (e) {
+          if (this.hookCount === null) this.hooks = [];
+          this.pendingEffects = [];
+          throw e;
+        }
+        if (!this.dirty) return tree;
+      }
+    }
+    checkHookCount() {
+      if (this.hookCount === null) {
+        this.hookCount = this.idx;
+      } else if (this.idx !== this.hookCount) {
+        throw new Error(
+          `\uC774\uC804 \uB80C\uB354\uBCF4\uB2E4 Hook \uC774 \uC801\uAC8C \uD638\uCD9C\uB418\uC5C8\uC2B5\uB2C8\uB2E4 (${this.hookCount}\uAC1C \u2192 ${this.idx}\uAC1C). Hook \uC744 \uC870\uAC74\uBB38 \uC548\uC5D0\uC11C \uC4F0\uC9C0 \uB9C8\uC138\uC694.`
+        );
+      }
+    }
+    // Phase 1 연결 지점: 처음이면 통째로 그리고, 이후엔 diff → applyPatches 로 바뀐 곳만 반영.
+    commit(tree) {
+      const prevTree = this.tree;
+      let patches = [];
+      let touched = /* @__PURE__ */ new Set();
+      if (!prevTree) {
+        this.container.replaceChildren(createDOM(tree));
+      } else {
+        patches = diff(prevTree, tree);
+        ({ touched } = applyPatches(this.container, patches));
+      }
+      this.tree = tree;
+      this.renderCount++;
+      this.lastCommit = { isMount: !prevTree, patches, touched, prevTree, tree, renderCount: this.renderCount };
+      if (this.onCommit) this.onCommit(this.lastCommit);
+    }
+    // DOM 반영 뒤: 예약된 effect 의 이전 cleanup 을 모두 실행하고, 새 effect 를 모두 실행합니다.
+    // 한 effect 가 던져도 나머지는 계속 실행하고, 첫 오류를 마지막에 다시 던집니다.
+    runEffects() {
+      const list = this.pendingEffects;
+      this.pendingEffects = [];
+      const errors = [];
+      for (const { slot } of list) {
+        if (typeof slot.cleanup === "function") {
+          const cleanup = slot.cleanup;
+          slot.cleanup = void 0;
+          try {
+            cleanup();
+          } catch (e) {
+            errors.push(e);
+          }
+        }
+      }
+      for (const { slot, effect, deps } of list) {
+        slot.deps = deps;
+        slot.ran = true;
+        try {
+          const result = effect();
+          slot.cleanup = typeof result === "function" ? result : void 0;
+        } catch (e) {
+          errors.push(e);
+        }
+      }
+      if (errors.length) throw errors[0];
+    }
+  };
+
+  // CDH/src/lib/hooks/useState.js
+  function useState(initial) {
+    const c = getCurrent("useState");
+    const { index, prev } = c.nextSlot("state", "useState");
+    let slot = prev;
+    if (!slot) {
+      slot = { kind: "state", value: typeof initial === "function" ? initial() : initial };
+      slot.set = (next) => {
+        const value = typeof next === "function" ? next(slot.value) : next;
+        if (Object.is(value, slot.value)) return;
+        slot.value = value;
+        c.scheduleUpdate();
+      };
+      c.hooks[index] = slot;
+    }
+    return [slot.value, slot.set];
+  }
+
+  // CDH/src/lib/hooks/deps.js
+  function assertDeps(deps, hookName) {
+    if (deps !== void 0 && !Array.isArray(deps)) {
+      throw new TypeError(`${hookName}: \uB450 \uBC88\uC9F8 \uC778\uC790(deps)\uB294 \uBC30\uC5F4\uC774\uAC70\uB098 \uC0DD\uB7B5\uD574\uC57C \uD569\uB2C8\uB2E4.`);
+    }
+  }
+  function depsChanged(prevDeps, nextDeps) {
+    if (nextDeps === void 0 || prevDeps === void 0) return true;
+    if (prevDeps.length !== nextDeps.length) return true;
+    return nextDeps.some((d, i) => !Object.is(d, prevDeps[i]));
+  }
+
+  // CDH/src/lib/hooks/useEffect.js
+  function useEffect(effect, deps) {
+    const c = getCurrent("useEffect");
+    if (typeof effect !== "function") throw new TypeError("useEffect: \uCCAB \uC778\uC790\uB294 \uD568\uC218\uC5EC\uC57C \uD569\uB2C8\uB2E4.");
+    assertDeps(deps, "useEffect");
+    const { index, prev } = c.nextSlot("effect", "useEffect");
+    let slot = prev;
+    if (!slot) {
+      slot = { kind: "effect", deps: void 0, cleanup: void 0, ran: false };
+      c.hooks[index] = slot;
+    }
+    if (!slot.ran || depsChanged(slot.deps, deps)) {
+      c.pendingEffects.push({ slot, effect, deps });
+    }
+  }
+
+  // CDH/src/lib/hooks/useMemo.js
+  function useMemo(factory, deps) {
+    const c = getCurrent("useMemo");
+    if (typeof factory !== "function") throw new TypeError("useMemo: \uCCAB \uC778\uC790\uB294 \uD568\uC218\uC5EC\uC57C \uD569\uB2C8\uB2E4.");
+    assertDeps(deps, "useMemo");
+    const { index, prev } = c.nextSlot("memo", "useMemo");
+    if (prev && !depsChanged(prev.deps, deps)) return prev.value;
+    const slot = { kind: "memo", deps, value: factory() };
+    c.hooks[index] = slot;
+    return slot.value;
+  }
+
+  // CDH/src/app2/components.js
+  function TodoForm({ text, onTextChange, onAdd }) {
+    return h(
+      "form",
+      {
+        className: "todo-form",
+        onSubmit: (e) => {
+          e.preventDefault();
+          onAdd();
+        }
+      },
+      h("input", {
+        type: "text",
+        placeholder: "\uD560 \uC77C\uC744 \uC785\uB825\uD558\uACE0 Enter",
+        "aria-label": "\uC0C8 \uD560 \uC77C",
+        value: text,
+        maxlength: 80,
+        onInput: (e) => onTextChange(e.target.value)
+      }),
+      h("button", { type: "submit", disabled: text.trim() === "" }, "\uCD94\uAC00")
+    );
+  }
+  function FilterBar({ filter, counts, onFilter }) {
+    const options = [
+      ["all", "\uC804\uCCB4"],
+      ["active", "\uC9C4\uD589 \uC911"],
+      ["done", "\uC644\uB8CC"]
+    ];
+    return h(
+      "div",
+      { className: "filters", role: "group", "aria-label": "\uD544\uD130" },
+      options.map(
+        ([value, label2]) => h(
+          "button",
+          {
+            key: value,
+            type: "button",
+            className: filter === value ? "on" : "",
+            "aria-pressed": filter === value,
+            onClick: () => onFilter(value)
+          },
+          `${label2} ${counts[value]}`
+        )
+      )
+    );
+  }
+  function TodoItem({ todo, onToggle, onRemove }) {
+    return h(
+      "li",
+      { className: todo.done ? "todo done" : "todo" },
+      h(
+        "label",
+        null,
+        h("input", { type: "checkbox", checked: todo.done, onChange: () => onToggle(todo.id) }),
+        h("span", { className: "text" }, todo.text)
+      ),
+      h("button", { type: "button", className: "x", "aria-label": `${todo.text} \uC0AD\uC81C`, onClick: () => onRemove(todo.id) }, "\xD7")
+    );
+  }
+  function TodoList({ todos, filter, onToggle, onRemove }) {
+    if (todos.length === 0) {
+      const msg = filter === "all" ? "\uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694. \uC704\uC5D0\uC11C \uCD94\uAC00\uD574 \uBCF4\uC138\uC694." : "\uC774 \uD544\uD130\uC5D0 \uB9DE\uB294 \uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694.";
+      return h("p", { className: "empty" }, msg);
+    }
+    return h(
+      "ul",
+      { className: "todos" },
+      todos.map((todo) => h(TodoItem, { key: todo.id, todo, onToggle, onRemove }))
+    );
+  }
+  function Stats({ stats, onClearDone }) {
+    return h(
+      "div",
+      { className: "stats" },
+      h("span", null, `\uC804\uCCB4 ${stats.total} \xB7 \uC644\uB8CC ${stats.done} \xB7 \uB0A8\uC74C ${stats.active}`),
+      h(
+        "div",
+        { className: "bar", "aria-hidden": "true" },
+        h("i", { style: { width: `${stats.percent}%` } })
+      ),
+      h("span", null, `${stats.percent}%`),
+      h("button", { type: "button", disabled: stats.done === 0, onClick: onClearDone }, "\uC644\uB8CC \uD56D\uBAA9 \uC9C0\uC6B0\uAE30")
+    );
+  }
+  function Timer({ seconds, running, onToggle, onReset }) {
+    const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const ss = String(seconds % 60).padStart(2, "0");
+    return h(
+      "div",
+      { className: "timer" },
+      h("strong", null, `${mm}:${ss}`),
+      h("button", { type: "button", onClick: onToggle }, running ? "\uC77C\uC2DC\uC815\uC9C0" : "\uC2DC\uC791"),
+      h("button", { type: "button", disabled: seconds === 0 && !running, onClick: onReset }, "\uCD08\uAE30\uD654")
+    );
+  }
+  function BurstDemo({ clicks, onBurst }) {
+    return h(
+      "div",
+      { className: "burst" },
+      h("span", null, `\uC5F0\uC18D setState \uB370\uBAA8: ${clicks}`),
+      h("button", { type: "button", onClick: onBurst }, "+1 \uC744 3\uBC88 \uD638\uCD9C")
+    );
+  }
+
+  // CDH/src/app2/todo-app.js
+  var STORAGE_KEY = "mini-react-phase2-todos";
+  var SAMPLE_TODOS = [
+    { id: 1, text: "Phase 1: Virtual DOM \xB7 Diff \xB7 Patch", done: true },
+    { id: 2, text: "Phase 2: useState / useEffect / useMemo", done: false },
+    { id: 3, text: "\uB2E8\uC704 \uD14C\uC2A4\uD2B8\uC640 \uC5E3\uC9C0 \uCF00\uC774\uC2A4 \uC810\uAC80", done: false }
+  ];
+  function loadTodos(storage) {
+    try {
+      const raw = storage?.getItem(STORAGE_KEY);
+      if (raw == null) return SAMPLE_TODOS;
+      const data = JSON.parse(raw);
+      const valid = Array.isArray(data) && data.every((t) => t && Number.isFinite(t.id) && typeof t.text === "string" && typeof t.done === "boolean");
+      return valid ? data : SAMPLE_TODOS;
+    } catch {
+      return SAMPLE_TODOS;
+    }
+  }
+  function computeStats(todos) {
+    const total = todos.length;
+    const done = todos.filter((t) => t.done).length;
+    return { total, done, active: total - done, percent: total === 0 ? 0 : Math.round(done / total * 100) };
+  }
+  function filterTodos(todos, filter) {
+    if (filter === "active") return todos.filter((t) => !t.done);
+    if (filter === "done") return todos.filter((t) => t.done);
+    return todos;
+  }
+  function TodoApp({ storage, log = () => {
+  }, onMemo = () => {
+  } }) {
+    const [todos, setTodos] = useState(() => loadTodos(storage));
+    const [text, setText] = useState("");
+    const [filter, setFilter] = useState("all");
+    const [seconds, setSeconds] = useState(0);
+    const [running, setRunning] = useState(false);
+    const [clicks, setClicks] = useState(0);
+    const stats = useMemo(() => {
+      onMemo("stats");
+      return computeStats(todos);
+    }, [todos]);
+    const visible = useMemo(() => {
+      onMemo("visible");
+      return filterTodos(todos, filter);
+    }, [todos, filter]);
+    const counts = useMemo(() => ({ all: stats.total, active: stats.active, done: stats.done }), [stats]);
+    useEffect(() => {
+      document.title = `(${stats.active}) \uD560 \uC77C \xB7 Mini React`;
+      log(`\uBB38\uC11C \uC81C\uBAA9 \uAC31\uC2E0 (\uB0A8\uC740 \uC77C ${stats.active})`);
+    }, [stats.active]);
+    useEffect(() => {
+      try {
+        storage?.setItem(STORAGE_KEY, JSON.stringify(todos));
+        log("localStorage \uC5D0 \uC800\uC7A5");
+      } catch {
+        log("\uC800\uC7A5 \uC2E4\uD328 (\uC6A9\uB7C9 \uCD08\uACFC \uB610\uB294 \uCC28\uB2E8)");
+      }
+    }, [todos]);
+    useEffect(() => {
+      if (!running) return void 0;
+      log("\uD0C0\uC774\uBA38 \uC2DC\uC791");
+      const id = setInterval(() => setSeconds((s) => s + 1), 1e3);
+      return () => {
+        clearInterval(id);
+        log("\uD0C0\uC774\uBA38 \uC815\uB9AC(cleanup)");
+      };
+    }, [running]);
+    const add = () => {
+      const value = text.trim();
+      if (!value) return;
+      setTodos((prev) => [...prev, { id: Math.max(0, ...prev.map((t) => t.id)) + 1, text: value, done: false }]);
+      setText("");
+    };
+    const toggle = (id) => setTodos((prev) => prev.map((t) => t.id === id ? { ...t, done: !t.done } : t));
+    const remove = (id) => setTodos((prev) => prev.filter((t) => t.id !== id));
+    const clearDone = () => setTodos((prev) => prev.filter((t) => !t.done));
+    const burst = () => {
+      setClicks((c) => c + 1);
+      setClicks((c) => c + 1);
+      setClicks((c) => c + 1);
+    };
+    return h(
+      "section",
+      { className: "todo-app" },
+      h("h2", null, "\uD560 \uC77C"),
+      h(TodoForm, { text, onTextChange: setText, onAdd: add }),
+      h(FilterBar, { filter, counts, onFilter: setFilter }),
+      h(TodoList, { todos: visible, filter, onToggle: toggle, onRemove: remove }),
+      h(Stats, { stats, onClearDone: clearDone }),
+      h(Timer, {
+        seconds,
+        running,
+        onToggle: () => setRunning((r) => !r),
+        onReset: () => {
+          setRunning(false);
+          setSeconds(0);
+        }
+      }),
+      h(BurstDemo, { clicks, onBurst: burst })
+    );
+  }
+
+  // CDH/src/lib/reconcile/describe.js
+  function short(s, n = 16) {
+    return s.length > n ? s.slice(0, n) + "\u2026" : s;
+  }
+  function fmt(v) {
+    if (typeof v === "function") return "\u0192";
+    if (typeof v === "object" && v !== null) return short(JSON.stringify(v));
+    return short(String(v));
+  }
+  function isHandler(name, value) {
+    return typeof value === "function" || /^on[A-Z]/.test(name);
+  }
+  function label(v) {
+    return typeof v === "string" ? `"${short(v)}"` : `<${v.type}>`;
+  }
+  function nodeAt2(root, path) {
+    let n = root;
+    for (const i of path) n = n.children[i];
+    return n;
+  }
+  function pathLabel(root, path) {
+    const names = [label(root)];
+    let n = root;
+    for (const i of path) {
+      n = n.children[i];
+      names.push(label(n));
+    }
+    return names.join(" > ");
+  }
+  function describePatches(oldRoot, patches) {
+    const lines = [];
+    for (const p of patches) {
+      const where = pathLabel(oldRoot, p.path);
+      if (p.op === "TEXT") {
+        lines.push({ op: "TEXT", text: `${where} \u2192 "${short(p.value)}"` });
+      } else if (p.op === "PROPS") {
+        const parts = [
+          ...Object.entries(p.set).map(([k, v]) => typeof v === "function" ? `${k}=\u0192` : `${k}="${fmt(v)}"`),
+          ...p.remove.map((k) => `${k} \uC81C\uAC70`)
+        ];
+        const handlerOnly = p.remove.length === 0 && Object.entries(p.set).every(([k, v]) => isHandler(k, v));
+        lines.push({ op: handlerOnly ? "HANDLER" : "PROPS", text: `${where} : ${parts.join(", ")}` });
+      } else if (p.op === "REPLACE") {
+        lines.push({ op: "REPLACE", text: `${where} \u2192 ${label(p.value)}` });
+      } else if (p.op === "REMOVE") {
+        lines.push({ op: "REMOVE", text: where });
+      } else if (p.op === "CHILDREN") {
+        const parent = nodeAt2(oldRoot, p.path);
+        p.plan.forEach((entry, j) => {
+          if ("create" in entry) {
+            lines.push({ op: "CREATE", text: `${where} [${j}] \u2190 ${label(entry.create)}` });
+          } else if (entry.moved) {
+            lines.push({
+              op: "MOVE",
+              text: `${where} : ${label(parent.children[entry.from])} ${entry.from} \u2192 ${j}`
+            });
+          }
+        });
+      }
+    }
+    return lines;
+  }
+
+  // CDH/src/app2/debug-panel.js
+  var LOG_LIMIT = 40;
+  function short2(text, n = 60) {
+    return text.length > n ? text.slice(0, n) + "\u2026" : text;
+  }
+  function show(value) {
+    if (typeof value === "function") return "\u0192";
+    try {
+      return short2(JSON.stringify(value) ?? String(value));
+    } catch {
+      return String(value);
+    }
+  }
+  function describeHook(slot) {
+    if (slot.kind === "state") return show(slot.value);
+    if (slot.kind === "memo") return `${show(slot.value)}   deps=${show(slot.deps)}`;
+    return `deps=${slot.deps === void 0 ? "\uC5C6\uC74C(\uB9E4 \uB80C\uB354)" : show(slot.deps)}  cleanup=${typeof slot.cleanup === "function" ? "\uC788\uC74C" : "\uC5C6\uC74C"}`;
+  }
+  function createDebugPanel(doc) {
+    const $ = (id) => doc.getElementById(id);
+    const els = {
+      renders: $("dbg-renders"),
+      summary: $("dbg-summary"),
+      hooks: $("dbg-hooks"),
+      patches: $("dbg-patches"),
+      log: $("dbg-log"),
+      memo: $("dbg-memo")
+    };
+    const memoRuns = {};
+    const logs = [];
+    let component = null;
+    function li(className, ...parts) {
+      const node = doc.createElement("li");
+      if (className) node.className = className;
+      node.append(...parts);
+      return node;
+    }
+    function span(className, text) {
+      const s = doc.createElement("span");
+      s.className = className;
+      s.textContent = text;
+      return s;
+    }
+    function renderLog() {
+      els.log.replaceChildren(...logs.map(({ tag, msg }) => li("", span("op", `#${tag}`), " ", msg)));
+    }
+    function renderMemo() {
+      els.memo.textContent = Object.entries(memoRuns).map(([k, v]) => `${k} \uACC4\uC0B0 ${v}\uD68C`).join(" \xB7 ");
+    }
+    function flash(touched) {
+      for (const node of touched) {
+        const el = node.nodeType === 3 ? node.parentElement : node;
+        if (el && typeof el.animate === "function") {
+          el.animate([{ backgroundColor: "#ffe58a" }, { backgroundColor: "transparent" }], 900);
+        }
+      }
+    }
+    return {
+      attach(c) {
+        component = c;
+      },
+      // 앱에 내려 주는 콜백들
+      log(msg) {
+        logs.unshift({ tag: component ? component.renderCount : 0, msg });
+        if (logs.length > LOG_LIMIT) logs.pop();
+        renderLog();
+      },
+      onMemo(name) {
+        memoRuns[name] = (memoRuns[name] ?? 0) + 1;
+        renderMemo();
+      },
+      // FunctionComponent 의 onCommit
+      onCommit({ isMount, patches, touched, prevTree, tree, renderCount }) {
+        els.renders.textContent = String(renderCount);
+        const total = countNodes(tree);
+        const lines = isMount ? [] : describePatches(prevTree, patches);
+        const dom = lines.filter((l) => l.op !== "HANDLER");
+        const handlers = lines.length - dom.length;
+        els.summary.textContent = isMount ? `\uCC98\uC74C \uB80C\uB354: \uB178\uB4DC ${total}\uAC1C\uB97C \uBAA8\uB450 \uB9CC\uB4E4\uC5C8\uC5B4\uC694.` : `DOM \uBCC0\uACBD ${touched.size}\uACF3 / \uC804\uCCB4 \uB178\uB4DC ${total}\uAC1C \xB7 \uD328\uCE58 ${dom.length}\uAC74` + (handlers ? ` \xB7 \uC774\uBCA4\uD2B8 \uD578\uB4E4\uB7EC \uAD50\uCCB4 ${handlers}\uAC74(\uD654\uBA74 \uBCC0\uD654 \uC5C6\uC74C)` : "");
+        els.patches.replaceChildren(
+          ...dom.length === 0 ? [li("", isMount ? "(mount \uB294 \uD328\uCE58 \uC5C6\uC774 \uD1B5\uC9F8\uB85C \uADF8\uB9BD\uB2C8\uB2E4)" : "(\uBC14\uB010 DOM \uC774 \uC5C6\uC5B4\uC694)")] : dom.map((l) => li("", span(`op op-${l.op.toLowerCase()}`, l.op), " ", l.text))
+        );
+        els.hooks.replaceChildren(
+          ...component.hooks.map((slot, i) => {
+            const tr = doc.createElement("tr");
+            for (const text of [String(i), slot.kind, describeHook(slot)]) {
+              const td = doc.createElement("td");
+              td.textContent = text;
+              tr.append(td);
+            }
+            return tr;
+          })
+        );
+        if (!isMount) flash(touched);
+      }
+    };
+  }
+
+  // CDH/src/app2/app.js
+  function safeStorage(doc) {
+    try {
+      return doc.defaultView.localStorage;
+    } catch {
+      return void 0;
+    }
+  }
+  function initApp(doc, { storage = safeStorage(doc) } = {}) {
+    const panel = createDebugPanel(doc);
+    const component = new FunctionComponent(TodoApp, {
+      props: { storage, log: panel.log, onMemo: panel.onMemo },
+      onCommit: panel.onCommit
+    });
+    panel.attach(component);
+    component.mount(doc.getElementById("app"));
+    const batch = doc.getElementById("batch-toggle");
+    if (batch) {
+      batch.checked = component.batch;
+      batch.addEventListener("change", () => {
+        component.flush();
+        component.batch = batch.checked;
+      });
+    }
+    return component;
+  }
+
+  // CDH/src/app2/main.js
+  initApp(document);
+  window.__miniReactBooted = true;
+})();
+
+</script>
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (window.__miniReactBooted) return;
+      var box = document.createElement('p');
+      box.style.cssText = 'background:#fde8e4;color:#7a1f10;padding:10px 14px;border-radius:8px;';
+      box.textContent = location.protocol === 'file:'
+        ? '앱이 시작되지 않았습니다: 파일을 직접 열면 ES 모듈이 막힙니다. standalone-phase2.html 을 열거나 npm run dev 후 http://localhost:5173/CDH/phase2.html 로 접속하세요.'
+        : '앱이 시작되지 않았습니다: 브라우저 콘솔(F12)의 오류를 확인하고, dev 서버를 재시작한 뒤 Ctrl+Shift+R 로 새로고침하세요.';
+      document.querySelector('main').prepend(box);
+    }, 500);
+  });
+</script>
+</body>
+</html>
