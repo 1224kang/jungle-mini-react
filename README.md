@@ -27,12 +27,12 @@ jungle-mini-react/
 │  └─ cases.js             # diff/patch 검증용 before/after 케이스
 ├─ src/
 │  ├─ lib/                 # Mini React 본체
-│  │  ├─ index.js          # 공개 인터페이스 (h, domToVdom, render, diff, patch, mount, useState, useEffect, useMemo)
+│  │  ├─ index.js          # 공개 인터페이스 (h, domToVdom, render, diff, patch, mount, FunctionComponent, useState, useEffect, useMemo)
 │  │  ├─ shared/           # 상수 (NODE_TYPE, PATCH_TYPE, HOOK_TYPE), 에러, 헬퍼
 │  │  ├─ vdom/             # h, domToVdom (VNode 생성/변환), expand (컴포넌트 → 요소 VNode로 펼치기)
 │  │  ├─ dom/              # render (VNode → 실제 DOM)
 │  │  ├─ reconcile/        # diff(변경 계산), patch(실제 DOM 반영)
-│  │  └─ hooks/            # useState, useEffect, useMemo, mount (상태·갱신 배칭)
+│  │  └─ hooks/            # useState, useEffect, useMemo, FunctionComponent·mount (상태·갱신 배칭)
 │  ├─ playground/          # 변환/diff/patch 검증 페이지, hooks/ 예제 페이지
 │  └─ app/                 # Mini React로 만든 데모 앱
 ├─ tests/                  # lib 구조를 따르는 테스트 + boundaries.test.js
@@ -73,9 +73,11 @@ function App() {
   return h(Counter, { count, onInc: incThree }); // 한 핸들러에서 3번 바꿔도 렌더는 1번
 }
 
-const { unmount } = mount(h(App), document.getElementById('app'));
+const app = mount(h(App), document.getElementById('app')); // FunctionComponent 인스턴스
+// app.hooks: 루트의 Hook 상태, app.update(): 즉시 다시 그리기, app.unmount(): 내리기
 ```
 
+- 루트 컴포넌트는 `FunctionComponent` 클래스로 감쌉니다. `hooks` 배열(상태 저장), `mount()`(처음 렌더링), `update()`(상태 변경 후 다시 렌더링)를 가집니다. `mount(h(App), container)`는 `new FunctionComponent(h(App)).mount(container)`와 같습니다.
 - **Hook은 루트 컴포넌트에서만** 쓸 수 있습니다. 자식 컴포넌트·이벤트 핸들러에서 부르면 에러가 납니다.
 - 같은 작업 안의 상태 변경은 마이크로태스크로 모아 **한 번만** 다시 그립니다. 같은 값으로 바꾸면 다시 그리지 않습니다.
 - `useEffect`는 DOM에 반영된 직후 실행되고, 다시 실행하기 전과 `unmount` 때 정리 함수를 부릅니다.
