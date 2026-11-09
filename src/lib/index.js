@@ -2,4 +2,7 @@
 export { h } from './vdom/h.js';
 export { domToVdom } from './vdom/domToVdom.js';
 export { render } from './dom/render.js';
-// diff, patch는 docs/contracts.md 5장(Patch)이 확정된 뒤 export한다.
+export { diff } from './reconcile/diff.js';
+export { patch } from './reconcile/patch.js';
+export { mount, FunctionComponent } from './hooks/root.js';
+export { useState, useEffect, useMemo } from './hooks/hooks.js';

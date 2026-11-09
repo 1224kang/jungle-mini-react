@@ -67,4 +67,17 @@ describe('모듈 경계', () => {
       }
     }
   });
+
+  it('vdom은 hooks를 import하지 않는다 (expand.js 포함)', () => {
+    const vdom = join(LIB, 'vdom');
+    const hooks = join(LIB, 'hooks');
+    const files = listJs(vdom);
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      for (const spec of importsOf(read(file))) {
+        const target = resolveImport(file, spec);
+        expect(target && inside(target, hooks), `${relative(ROOT, file)}가 ${spec}를 import`).toBeFalsy();
+      }
+    }
+  });
 });

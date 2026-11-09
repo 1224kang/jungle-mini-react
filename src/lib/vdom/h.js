@@ -8,31 +8,34 @@ import {
 import { mergeText } from './normalize.js';
 
 /**
- * 요소 VNode를 만든다. 어떤 입력이 들어와도 docs/contracts.md 1장의 형식으로만 내보낸다.
- * 공백 규칙(②③)은 적용하지 않는다. 문자열은 그대로 쓴다. (2.3)
- * @param {string} type 태그 이름 (소문자로 바뀜)
+ * 요소 VNode 또는 컴포넌트 VNode를 만든다.
+ * - type이 문자열이면 요소 VNode. 어떤 입력이 들어와도 docs/contracts.md 1장의 형식으로만 내보낸다.
+ *   공백 규칙(②③)은 적용하지 않는다. 문자열은 그대로 쓴다. (2.3)
+ * - type이 함수면 컴포넌트 VNode. key·children은 요소와 같은 규칙, 나머지 props 값은 변환하지 않는다. (6.1)
+ * @param {string|Function} type 태그 이름 (소문자로 바뀜) 또는 컴포넌트 함수
  * @param {object|null|undefined} props 속성 객체. key/data-key는 최상위 key로 옮겨진다.
  * @param {...*} children 자식 (문자열, 숫자, VNode, 배열, 버릴 값)
- * @returns {{type: string, key: string|null, props: object}} 요소 VNode
+ * @returns {{type: string|Function, key: string|null, props: object}} 요소 VNode 또는 컴포넌트 VNode
  */
 export function h(type, props, ...children) {
   const source = props ?? {};
   const rawChildren = children.length > 0 ? children : source.children;
+  const isComponent = typeof type === 'function';
+  const vnodeType = isComponent ? type : normalizeType(type);
 
   const normalized = mergeText(collectChildren(rawChildren, []));
   const vnode = {
-    type: normalizeType(type),
+    type: vnodeType,
     key: extractKey(source),
-    props: { ...normalizeProps(source), children: normalized },
+    props: { ...(isComponent ? copyComponentProps(source) : normalizeProps(source)), children: normalized },
   };
-  warnDuplicateKeys(normalized, vnode.type);
+  warnDuplicateKeys(normalized, isComponent ? type.name || '익명 컴포넌트' : vnodeType);
   return vnode;
 }
 
 function normalizeType(type) {
-  if (typeof type === 'function') throw unsupportedError(`컴포넌트 (type이 함수: ${type.name || '익명'})`);
   if (typeof type !== 'string' || type === '') {
-    throw invalidInputError(`h()의 type은 비어 있지 않은 문자열이어야 함 (받은 값: ${describe(type)})`);
+    throw invalidInputError(`h()의 type은 비어 있지 않은 문자열 또는 컴포넌트 함수여야 함 (받은 값: ${describe(type)})`);
   }
   const normalized = type.toLowerCase();
   if (normalized === TEXT_TYPE) {
@@ -59,7 +62,12 @@ function normalizeProps(props) {
   const entries = [];
   for (const [name, value] of Object.entries(props)) {
     if (name === 'children' || name === 'key' || name === KEY_ATTRIBUTE) continue;
-    if (typeof value === 'function') throw unsupportedError(`함수 이벤트 핸들러 (props.${name})`);
+    if (typeof value === 'function') {
+      // on*의 함수는 이벤트 핸들러라 그대로 둔다. 그 밖의 함수 prop은 여전히 범위 밖. (contracts.md 3장)
+      if (!/^on./s.test(name)) throw unsupportedError(`함수 이벤트 핸들러 (props.${name})`);
+      entries.push([name, value]);
+      continue;
+    }
     if (value === false || value === null || value === undefined) continue;
     if (value === true) {
       entries.push([name, '']);
@@ -69,6 +77,17 @@ function normalizeProps(props) {
       entries.push([name, String(value)]);
     }
   }
+  return Object.fromEntries(entries);
+}
+
+/**
+ * 컴포넌트 VNode의 props: children/key/data-key를 뺀 own 항목을 값 변환 없이 복사한다. (6.1)
+ * 입력 객체는 수정하지 않는다. "__proto__" 이름도 own 속성으로 남기려고 Object.fromEntries를 쓴다.
+ */
+function copyComponentProps(props) {
+  const entries = Object.entries(props).filter(
+    ([name]) => name !== 'children' && name !== 'key' && name !== KEY_ATTRIBUTE,
+  );
   return Object.fromEntries(entries);
 }
 
@@ -83,7 +102,7 @@ function collectChildren(value, out) {
     for (const item of value) collectChildren(item, out);
   } else if (isTextVNode(value)) {
     out.push(value.value);
-  } else if (isElementVNode(value)) {
+  } else if (isElementVNode(value) || isComponentVNode(value)) {
     out.push(value);
   } else {
     throw invalidInputError(`h()의 자식으로 쓸 수 없는 값 (받은 값: ${describe(value)})`);
@@ -100,6 +119,18 @@ function isElementVNode(value) {
     typeof value === 'object' &&
     typeof value.type === 'string' &&
     value.type !== TEXT_TYPE &&
+    (value.key === null || typeof value.key === 'string') &&
+    typeof value.props === 'object' &&
+    value.props !== null &&
+    Array.isArray(value.props.children)
+  );
+}
+
+/** 컴포넌트 VNode(6.1)인지 확인한다. 펼치기 전 트리에서만 자식으로 들어온다. */
+function isComponentVNode(value) {
+  return (
+    typeof value === 'object' &&
+    typeof value.type === 'function' &&
     (value.key === null || typeof value.key === 'string') &&
     typeof value.props === 'object' &&
     value.props !== null &&

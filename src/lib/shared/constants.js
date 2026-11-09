@@ -28,4 +28,15 @@ export const PATCH_TYPE = Object.freeze({
   REPLACE: 'REPLACE',
   TEXT: 'TEXT',
   PROPS: 'PROPS',
+  MOVE: 'MOVE',
 });
+
+/** Hook 슬롯의 type 상수. 첫 렌더의 순서를 기록해 렌더마다 같은지 검사한다 (docs/contracts.md 6.3). */
+export const HOOK_TYPE = Object.freeze({
+  STATE: 'STATE',
+  EFFECT: 'EFFECT',
+  MEMO: 'MEMO',
+});
+
+/** effect가 연속으로 일으킬 수 있는 갱신 횟수의 상한. 넘으면 무한 갱신으로 보고 에러를 던진다. */
+export const MAX_NESTED_UPDATES = 50;

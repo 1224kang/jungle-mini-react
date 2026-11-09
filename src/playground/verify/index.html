@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VDOM Patch 검증</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <h1>Virtual DOM / Diff / Patch 검증</h1>
+      <span id="consistency" class="badge">검사 전</span>
+      <div id="message" class="message" role="status"></div>
+    </header>
+
+    <main class="grid">
+      <!-- 왼쪽 상단: 실제 렌더링 영역 -->
+      <section class="panel" id="panel-real">
+        <h2>렌더링 영역 <small>patch()만으로 갱신되는 실제 DOM</small></h2>
+        <div id="stats" class="stats">재사용 – · 새로 만듦 – · 제거 –</div>
+        <!-- 샘플 HTML. Shadow DOM 안에 있어 페이지 CSS/ID와 격리된다. -->
+        <div id="real-host" class="stage">
+          <template shadowrootmode="open">
+            <div class="card" id="demo" style="padding: 12px; border: 1px solid #c8ccd0; border-radius: 8px">
+              <h3 class="title">할 일 목록</h3>
+              <p class="desc">텍스트, <strong>중첩 요소</strong>, <em title="title 속성">속성</em>을 확인하는 샘플입니다.</p>
+              <ul class="todo">
+                <li data-key="apple" class="item">사과 사기</li>
+                <li data-key="milk" class="item done" style="color: gray">우유 사기</li>
+                <li data-key="bread" class="item">빵 사기</li>
+              </ul>
+              <label for="memo">메모</label>
+              <input id="memo" type="text" placeholder="여기에 입력한 값이 Patch 후에도 남는지 확인" />
+              <section class="nested"><div><span>깊은</span> <span>중첩</span></div></section>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <!-- 오른쪽 상단: HTML 편집기 + Patch 버튼 -->
+      <section class="panel" id="panel-editor">
+        <h2>
+          HTML 편집기 <small>수정 후 Patch를 누르면 렌더링 영역에 반영</small>
+          <button id="btn-patch" type="button">Patch</button>
+        </h2>
+        <label for="editor" class="sr-only">HTML 편집기</label>
+        <textarea id="editor" spellcheck="false"></textarea>
+        <div id="parse-status" class="parse-status"></div>
+      </section>
+
+      <!-- 왼쪽 하단: 영수증 형태 Patch 로그 -->
+      <section class="panel" id="panel-log">
+        <h2>Patch 영수증 <small id="log-summary"></small></h2>
+        <div id="receipt" class="receipt">
+          <p class="muted">아직 Patch하지 않았습니다.</p>
+        </div>
+      </section>
+
+      <!-- 오른쪽 하단: 히스토리 -->
+      <section class="panel" id="panel-history">
+        <h2>
+          히스토리 <small>저장된 상태를 눌러 불러오기 · 브라우저 뒤로/앞으로가기도 동작</small>
+        </h2>
+        <div class="controls">
+          <button id="btn-back" type="button" disabled>◀ 뒤로가기</button>
+          <button id="btn-forward" type="button" disabled>앞으로가기 ▶</button>
+          <span class="position"><strong id="history-pos">1 / 1</strong></span>
+        </div>
+        <ol id="history-list" class="history-list"></ol>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
