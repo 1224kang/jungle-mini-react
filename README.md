@@ -18,8 +18,8 @@ React, Vue 같은 외부 UI 프레임워크 없이 **순수 JavaScript**로 Reac
 
 ```
 jungle-mini-react/
-├─ index.html              # 진입 페이지 (playground / app 링크)
-├─ vite.config.js          # vitest 환경(jsdom) 설정
+├─ index.html              # 페이지 목록 (/index.html). `/`는 데모 앱을 보여 줌
+├─ vite.config.js          # vitest 환경(jsdom) 설정, 개발 서버 `/` → src/app
 ├─ docs/
 │  ├─ contracts.md         # VNode / Patch / 컴포넌트 데이터 계약
 │  └─ diff-patch.md        # diff / patch 설계 배경과 세부 규칙
@@ -50,7 +50,8 @@ jungle-mini-react/
 4. **의존성 방향**: playground/app → lib/index.js → hooks → vdom·dom·reconcile → shared (역방향 import 금지). `tests/boundaries.test.js`가 검사합니다.
 
 - 데이터 형식은 [docs/contracts.md](docs/contracts.md)를 따릅니다.
-- 검증 페이지: `npm run dev` 후 http://localhost:5173/src/playground/
+- 데모 앱: `npm run dev` 후 http://localhost:5173/
+- 검증 페이지: http://localhost:5173/src/playground/verify/
 
 ### 컴포넌트와 Hooks (Phase 2)
 
