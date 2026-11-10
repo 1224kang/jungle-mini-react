@@ -1,0 +1,50 @@
+/* 모든 페이지 공통: 리셋 · 레이아웃 · 헤더/푸터 · 버튼 · 섹션. 토큰은 tokens.css. */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+a { color: inherit; }
+h1, h2, h3 { line-height: 1.25; margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.container { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+
+/* 헤더 */
+.header {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 1rem; }
+.brand { display: flex; align-items: center; gap: .5rem; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+.brand-mark { color: var(--accent); font-size: 1.4rem; }
+.menu { display: flex; gap: .25rem; }
+.menu a { padding: .4rem .8rem; border-radius: 8px; color: var(--muted); text-decoration: none; font-size: .95rem; }
+.menu a:hover { background: var(--bg-alt); color: var(--text); }
+.menu a[aria-current="page"] { background: var(--bg-alt); color: var(--text); font-weight: 600; }
+
+/* 버튼 */
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: .65rem 1.25rem; border-radius: 10px; border: 1px solid transparent; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { border-color: var(--border); background: var(--bg); }
+.btn-ghost:hover { background: var(--bg-alt); }
+
+/* 섹션 */
+.section { padding: 72px 0; }
+.section-alt { background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.section h2 { font-size: 1.75rem; }
+.section-lead { color: var(--muted); margin: .75rem 0 0; }
+
+/* 푸터 */
+.footer { padding: 32px 0; color: var(--muted); font-size: .9rem; text-align: center; }
+.footer p { margin: 0; }
+
+@media (max-width: 760px) {
+  .section { padding: 56px 0; }
+}

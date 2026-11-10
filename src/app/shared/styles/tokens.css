@@ -1,0 +1,26 @@
+/* 디자인 토큰: 색 · 반경 · 폭. 라이트/다크 모드는 prefers-color-scheme을 따른다. */
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f6f8fa;
+  --text: #1f2328;
+  --muted: #59636e;
+  --border: #d0d7de;
+  --accent: #0969da;
+  --accent-soft: #ddf4ff;
+  --done: #8c959f;
+  --radius: 12px;
+  --max: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --bg-alt: #151b23;
+    --text: #e6edf3;
+    --muted: #9198a1;
+    --border: #30363d;
+    --accent: #4493f8;
+    --accent-soft: #1f2a3a;
+    --done: #6e7681;
+  }
+}
