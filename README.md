@@ -51,7 +51,6 @@ jungle-mini-react/
 
 - 데이터 형식은 [docs/contracts.md](docs/contracts.md)를 따릅니다.
 - 검증 페이지: `npm run dev` 후 http://localhost:5173/src/playground/
-- Hooks 예제 페이지: http://localhost:5173/src/playground/hooks/ (배칭 · 렌더 횟수 확인)
 
 ### 컴포넌트와 Hooks (Phase 2)
 
