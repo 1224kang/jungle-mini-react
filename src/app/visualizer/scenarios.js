@@ -1,95 +1,85 @@
-// 시각화 시나리오. before는 처음 화면, after는 편집기에 미리 넣어 두는 다음 화면이다.
-// expect는 이 시나리오에서 나와야 하는 Patch 종류 (안내 문구용).
+// 시각화 예제. before는 처음 화면, after는 편집기에 미리 넣어 두는 다음 화면이다.
+// expect는 이 예제에서 나와야 하는 Patch 종류 (안내 문구용).
 
 export const SCENARIOS = [
   {
-    id: 'text',
-    label: '텍스트 변경',
-    expect: ['TEXT'],
-    hint: '바뀐 글자만 TEXT Patch로 고칩니다. 제목과 문단 요소는 그대로 재사용됩니다.',
+    id: 'todo',
+    label: '할 일 목록',
+    expect: ['TEXT', 'PROPS', 'REMOVE', 'CREATE', 'REPLACE'],
+    hint: '한 번의 Patch에 종류가 모두 나옵니다. 하나만 보고 싶으면 After에서 한 군데만 고쳐 실행해 보세요. (글자 하나, class 하나, 항목 하나 지우기 등)',
     before: `<div class="card">
-  <h3>장보기</h3>
-  <p>사과 3개</p>
+  <h3>할 일</h3>
+  <p class="count">남은 일 3개</p>
+  <ul class="list">
+    <li data-key="milk">우유 사기</li>
+    <li data-key="mail">메일 보내기</li>
+    <li data-key="gym">운동하기</li>
+  </ul>
+  <p class="note">오늘 안에 끝내기</p>
 </div>`,
     after: `<div class="card">
-  <h3>장보기</h3>
-  <p>사과 5개</p>
+  <h3>할 일</h3>
+  <p class="count">남은 일 2개</p>
+  <ul class="list">
+    <li data-key="milk" class="done">우유 사기</li>
+    <li data-key="gym">운동하기</li>
+    <li data-key="book">책 읽기</li>
+  </ul>
+  <strong class="note">오늘 안에 끝내기</strong>
 </div>`,
   },
   {
-    id: 'props',
-    label: '속성 변경',
-    expect: ['PROPS', 'TEXT'],
-    hint: '속성은 추가·변경(set)과 삭제(remove)를 한 PROPS Patch에 모아 보냅니다.',
-    before: `<div class="card">
-  <button class="chip">저장</button>
-  <span class="badge" title="아직 저장 전">초안</span>
+    id: 'reorder',
+    label: '목록 재정렬',
+    expect: ['MOVE', 'TEXT'],
+    hint: '먼저 화면에서 두 목록의 "사과"를 체크한 뒤 Patch해 보세요. key가 있으면 DOM이 MOVE되어 체크가 사과를 따라가고, key가 없으면 글자만 TEXT로 바뀌어 체크가 제자리에 남습니다.',
+    before: `<div class="lists">
+  <section>
+    <h3>key 있음</h3>
+    <ul class="list">
+      <li data-key="apple"><label><input type="checkbox"> 사과</label></li>
+      <li data-key="milk"><label><input type="checkbox"> 우유</label></li>
+      <li data-key="bread"><label><input type="checkbox"> 빵</label></li>
+    </ul>
+  </section>
+  <section>
+    <h3>key 없음</h3>
+    <ul class="list">
+      <li><label><input type="checkbox"> 사과</label></li>
+      <li><label><input type="checkbox"> 우유</label></li>
+      <li><label><input type="checkbox"> 빵</label></li>
+    </ul>
+  </section>
 </div>`,
-    after: `<div class="card">
-  <button class="chip on" aria-pressed="true">저장</button>
-  <span class="badge">게시됨</span>
+    after: `<div class="lists">
+  <section>
+    <h3>key 있음</h3>
+    <ul class="list">
+      <li data-key="milk"><label><input type="checkbox"> 우유</label></li>
+      <li data-key="bread"><label><input type="checkbox"> 빵</label></li>
+      <li data-key="apple"><label><input type="checkbox"> 사과</label></li>
+    </ul>
+  </section>
+  <section>
+    <h3>key 없음</h3>
+    <ul class="list">
+      <li><label><input type="checkbox"> 우유</label></li>
+      <li><label><input type="checkbox"> 빵</label></li>
+      <li><label><input type="checkbox"> 사과</label></li>
+    </ul>
+  </section>
 </div>`,
-  },
-  {
-    id: 'add-remove',
-    label: '추가 · 삭제',
-    expect: ['REMOVE', 'CREATE'],
-    hint: '사라진 항목은 REMOVE, 새 항목은 CREATE. 남은 항목의 DOM은 그대로 둡니다.',
-    before: `<ul class="list">
-  <li data-key="apple">사과</li>
-  <li data-key="milk">우유</li>
-  <li data-key="bread">빵</li>
-</ul>`,
-    after: `<ul class="list">
-  <li data-key="apple">사과</li>
-  <li data-key="bread">빵</li>
-  <li data-key="egg">달걀</li>
-</ul>`,
-  },
-  {
-    id: 'replace',
-    label: '태그 교체',
-    expect: ['REPLACE'],
-    hint: '태그(type)가 다르면 하위를 비교하지 않고 노드를 통째로 REPLACE합니다.',
-    before: `<div class="card">
-  <p class="note">배송은 내일 도착합니다.</p>
-</div>`,
-    after: `<div class="card">
-  <blockquote class="note">배송은 내일 도착합니다.</blockquote>
-</div>`,
-  },
-  {
-    id: 'keyed',
-    label: 'key 재정렬',
-    expect: ['MOVE'],
-    hint: '먼저 화면에서 "사과"를 체크한 뒤 Patch해 보세요. key 덕분에 DOM이 통째로 MOVE되어 체크가 사과를 따라갑니다.',
-    before: `<ul class="list">
-  <li data-key="apple"><label><input type="checkbox"> 사과</label></li>
-  <li data-key="milk"><label><input type="checkbox"> 우유</label></li>
-  <li data-key="bread"><label><input type="checkbox"> 빵</label></li>
-</ul>`,
-    after: `<ul class="list">
-  <li data-key="milk"><label><input type="checkbox"> 우유</label></li>
-  <li data-key="bread"><label><input type="checkbox"> 빵</label></li>
-  <li data-key="apple"><label><input type="checkbox"> 사과</label></li>
-</ul>`,
-  },
-  {
-    id: 'unkeyed',
-    label: 'key 없이 재정렬',
-    expect: ['TEXT'],
-    hint: '같은 순서 변경을 key 없이 해 봅니다. 자리마다 글자만 바뀌어서 "사과"에 한 체크가 첫 줄(이제 "우유")에 남습니다.',
-    before: `<ul class="list">
-  <li><label><input type="checkbox"> 사과</label></li>
-  <li><label><input type="checkbox"> 우유</label></li>
-  <li><label><input type="checkbox"> 빵</label></li>
-</ul>`,
-    after: `<ul class="list">
-  <li><label><input type="checkbox"> 우유</label></li>
-  <li><label><input type="checkbox"> 빵</label></li>
-  <li><label><input type="checkbox"> 사과</label></li>
-</ul>`,
   },
 ];
 
-export const findScenario = (id) => SCENARIOS.find((s) => s.id === id) ?? SCENARIOS[0];
+// 예전 주소(?s=text 등)도 열리도록 새 예제 id로 바꿔 준다.
+const LEGACY = {
+  text: 'todo',
+  props: 'todo',
+  'add-remove': 'todo',
+  replace: 'todo',
+  keyed: 'reorder',
+  unkeyed: 'reorder',
+};
+
+export const findScenario = (id) => SCENARIOS.find((s) => s.id === (LEGACY[id] ?? id)) ?? SCENARIOS[0];

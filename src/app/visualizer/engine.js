@@ -37,17 +37,28 @@ function openTag(vnode) {
   return `<${parts.join(' ')}>`;
 }
 
-/** 줄바꿈 들여쓰기는 domToVdom 규칙 ②로 버려지므로 다시 읽어도 같은 VNode가 된다. */
-export function toHtml(vnode, depth = 0) {
-  const pad = '  '.repeat(depth);
+// 공백이 의미를 갖는 태그. domToVdom 규칙 ③(docs/contracts.md 2.2)의 예외 목록과 같다.
+const PRESERVE = new Set(['pre', 'textarea', 'script', 'style']);
+
+/**
+ * 줄바꿈 들여쓰기는 domToVdom 규칙 ②로 버려지므로 다시 읽어도 같은 VNode가 된다.
+ * 단 pre/textarea/script/style과 그 자손 안에서는 규칙 ③ 때문에 공백이 보존되므로, 공백을 더하지 않고 한 줄에 쓴다.
+ */
+export function toHtml(vnode, depth = 0, preserve = false) {
+  const pad = preserve ? '' : '  '.repeat(depth);
   if (vnode.type === '#text') return pad + escapeText(vnode.value);
   const open = openTag(vnode);
   if (VOID.has(vnode.type)) return pad + open;
   const kids = vnode.props.children;
   const close = `</${vnode.type}>`;
   if (kids.length === 0) return pad + open + close;
-  // 텍스트가 섞이면 공백이 의미를 가지므로 한 줄에 쓴다.
-  if (kids.some((k) => k.type === '#text')) return pad + open + kids.map((k) => toHtml(k, 0)).join('') + close;
+  const inside = preserve || PRESERVE.has(vnode.type);
+  // 텍스트가 섞이거나 공백 보존 영역이면 공백이 의미를 가지므로 한 줄에 쓴다.
+  if (inside || kids.some((k) => k.type === '#text')) {
+    // HTML 파서는 <pre>/<textarea> 바로 뒤의 첫 줄바꿈 하나를 버리므로, 내용이 줄바꿈으로 시작하면 하나 더 쓴다.
+    const lead = (vnode.type === 'pre' || vnode.type === 'textarea') && kids[0].type === '#text' && kids[0].value.startsWith('\n') ? '\n' : '';
+    return pad + open + lead + kids.map((k) => toHtml(k, 0, inside)).join('') + close;
+  }
   return [pad + open, ...kids.map((k) => toHtml(k, depth + 1)), pad + close].join('\n');
 }
 
@@ -129,7 +140,9 @@ function classifyMutations(records, beforeNodes) {
 export function flashChanges(changes) {
   const styles = getComputedStyle(document.documentElement);
   for (const { el, kind } of changes) {
-    const color = styles.getPropertyValue(`--patch-${kind}`).trim() || 'orange';
+    // 이 페이지는 텍스트 = 노랑, 속성 = 파랑이라 두 종류의 색 토큰을 바꿔 쓴다. (visualizer.css의 .vz와 같은 규칙)
+    const token = { text: 'props', props: 'text' }[kind] ?? kind;
+    const color = styles.getPropertyValue(`--patch-${token}`).trim() || 'orange';
     el.animate(
       [
         { boxShadow: `0 0 0 3px ${color}`, offset: 0 },
@@ -160,37 +173,53 @@ export function labelOf(vnode) {
 }
 
 const quote = (v) => `"${v}"`;
+const NONE = '(없음)';
+const showValue = (v) => (typeof v === 'string' ? quote(v) : 'ƒ');
+const pathText = (path) => `[${path.join(', ')}]`;
 
 /**
- * Patch 하나를 사람이 읽는 문장으로 바꾼다.
+ * Patch 하나를 사람이 읽는 문장으로 바꾼다. 이전 값 -> 이후 값을 함께 보여 준다.
  * @param {object} p Patch
  * @param {object} oldVNode 이 Patch 목록을 만든 diff의 old 트리 (path 기준)
- * @returns {{ target: string, detail: string }}
+ * @returns {{ target: string, basis: string, details: string[] }}
+ *   target: 대상 라벨 / basis: path가 무엇 기준인지 / details: 구체 내용(줄 단위)
  */
 export function describePatch(p, oldVNode) {
+  const old = nodeAt(oldVNode, p.path);
+  const basis = '이전 트리 기준';
   switch (p.type) {
     case 'TEXT':
-      return { target: labelOf(nodeAt(oldVNode, p.path)), detail: `텍스트 → ${quote(p.value)}` };
+      return { target: labelOf(old), basis, details: [`${quote(old?.value ?? '')} → ${quote(p.value)}`] };
     case 'PROPS': {
-      const set = Object.entries(p.set ?? {}).map(([k, v]) => `${k}=${typeof v === 'string' ? quote(v) : 'ƒ'}`);
-      const parts = [];
-      if (set.length) parts.push(`설정 ${set.join(', ')}`);
-      if (p.remove?.length) parts.push(`삭제 ${p.remove.join(', ')}`);
-      return { target: labelOf(nodeAt(oldVNode, p.path)), detail: parts.join(' · ') };
+      const before = old?.props ?? {};
+      const details = [
+        ...Object.entries(p.set ?? {}).map(
+          ([k, v]) => `${k}: ${Object.hasOwn(before, k) ? showValue(before[k]) : NONE} → ${showValue(v)}`,
+        ),
+        ...(p.remove ?? []).map((k) => `${k}: ${showValue(before[k])} → (삭제)`),
+      ];
+      return { target: labelOf(old), basis, details };
     }
-    case 'CREATE':
-      return { target: labelOf(p.node), detail: `새로 만들어 ${beforeText(p.before, oldVNode, p.path)}에 넣음` };
+    case 'CREATE': {
+      const parentPath = p.path.slice(0, -1);
+      return {
+        target: labelOf(p.node),
+        basis: `부모 ${pathText(parentPath)} 이전 트리 기준 · 새 순서 ${p.path.at(-1) + 1}번째`,
+        details: [`새로 만들어 ${beforeText(p.before, oldVNode, p.path)}에 넣음`],
+      };
+    }
     case 'REMOVE':
-      return { target: labelOf(nodeAt(oldVNode, p.path)), detail: 'DOM에서 지움' };
+      return { target: labelOf(old), basis, details: ['DOM에서 지움'] };
     case 'REPLACE':
-      return { target: labelOf(nodeAt(oldVNode, p.path)), detail: `통째로 교체 → ${labelOf(p.node)}` };
+      return { target: labelOf(old), basis, details: [`${labelOf(old)} → ${labelOf(p.node)} (하위는 비교하지 않고 통째로 교체)`] };
     case 'MOVE':
       return {
-        target: labelOf(nodeAt(oldVNode, p.path)),
-        detail: `DOM을 다시 만들지 않고 ${p.index + 1}번째 자리로 옮김`,
+        target: labelOf(old),
+        basis: `이전 ${pathText(p.path)} → 새 순서 ${p.index + 1}번째`,
+        details: ['DOM을 다시 만들지 않고 옮김'],
       };
     default:
-      return { target: '', detail: '' };
+      return { target: '', basis: '', details: [] };
   }
 }
 
