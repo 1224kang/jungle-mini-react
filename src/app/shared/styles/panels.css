@@ -1,0 +1,45 @@
+/* 도구 페이지(시각화 · 컴포넌트) 공통: 소개 · 패널 · Patch 종류 배지 · 코드 블록. */
+
+/* 소개 */
+.page-intro { padding: 56px 0 24px; }
+.page-intro h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: -.02em; }
+.page-intro .lead { max-width: 720px; margin: 1rem 0 0; color: var(--muted); font-size: 1.05rem; }
+.page-body { padding: 8px 0 72px; }
+
+/* 종류별 색 */
+.t-create { --c: var(--patch-create); }
+.t-remove { --c: var(--patch-remove); }
+.t-move { --c: var(--patch-move); }
+.t-text { --c: var(--patch-text); }
+.t-props { --c: var(--patch-props); }
+.t-keep { --c: var(--patch-keep); }
+
+.badge-type {
+  display: inline-block; padding: .1rem .5rem; border-radius: 6px;
+  font: 600 .75rem/1.5 var(--mono); letter-spacing: .02em;
+  color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  white-space: nowrap;
+}
+.badge-type.off { --c: var(--muted); opacity: .45; }
+
+/* 패널 */
+.panel {
+  display: flex; flex-direction: column; gap: .75rem; min-width: 0;
+  padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
+}
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; }
+.panel-head h2 { display: flex; align-items: center; gap: .5rem; font-size: 1.1rem; }
+.panel-note { color: var(--muted); font-size: .85rem; }
+.step {
+  padding: .05rem .5rem; border-radius: 6px; background: var(--bg-alt); border: 1px solid var(--border);
+  color: var(--muted); font: 600 .75rem/1.6 var(--mono);
+}
+
+/* 코드 */
+.code {
+  margin: 0; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg-alt); color: var(--text); font: .85rem/1.6 var(--mono); tab-size: 2;
+  overflow: auto; max-height: 260px; white-space: pre;
+}
+.empty { margin: 0; padding: 1rem; border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); text-align: center; }

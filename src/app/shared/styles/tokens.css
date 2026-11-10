@@ -10,6 +10,17 @@
   --done: #8c959f;
   --radius: 12px;
   --max: 1080px;
+  --header-h: 60px;
+  --sidebar-w: 280px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'D2Coding', monospace;
+
+  /* Patch 종류별 색 (시각화 강조 · 배지) */
+  --patch-create: #1a7f37;
+  --patch-remove: #cf222e;
+  --patch-move: #8250df;
+  --patch-text: #0969da;
+  --patch-props: #bf8700;
+  --patch-keep: #59636e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +33,11 @@
     --accent: #4493f8;
     --accent-soft: #1f2a3a;
     --done: #6e7681;
+    --patch-create: #3fb950;
+    --patch-remove: #f85149;
+    --patch-move: #a371f7;
+    --patch-text: #4493f8;
+    --patch-props: #d29922;
+    --patch-keep: #9198a1;
   }
 }

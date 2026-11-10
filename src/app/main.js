@@ -3,6 +3,7 @@
 // 규칙(README · docs/contracts.md 6장): Hook은 루트(App)에서만 쓰고, 자식은 props만 받는 순수 함수다.
 import { h, mount, useState, useEffect, useMemo } from '../lib/index.js';
 import { PageShell } from './shared/layout.js';
+import { useSidebar } from './shared/useSidebar.js';
 
 /* ---------- 자식 컴포넌트 (상태 없음) ---------- */
 
@@ -24,18 +25,35 @@ function Hero() {
       h(
         'div',
         { class: 'actions' },
-        h('a', { class: 'btn btn-primary', href: '#demo' }, '라이브 데모 보기'),
-        h('a', { class: 'btn btn-ghost', href: '#features' }, '무엇을 구현했나요'),
+        h('a', { class: 'btn btn-primary', href: VISUALIZER }, 'Diff 시각화 해보기'),
+        h('a', { class: 'btn btn-ghost', href: '#demo' }, '라이브 데모 보기'),
       ),
     ),
   );
 }
 
+const VISUALIZER = '/src/app/visualizer/';
+const COMPONENTS = '/src/app/components/';
+
 const FEATURES = [
-  { id: 'vdom', step: '01', title: 'Virtual DOM', body: '실제 DOM을 가벼운 객체 트리(VNode)로 바꾸고, h()로 화면을 선언합니다.' },
-  { id: 'diff', step: '02', title: 'Diff', body: '이전 트리와 새 트리를 비교해 바뀐 부분만 Patch 목록으로 계산합니다. key로 순서 이동도 추적합니다.' },
-  { id: 'patch', step: '03', title: 'Patch', body: 'Patch 목록만 실제 DOM에 반영합니다. 바뀌지 않은 노드는 그대로 재사용됩니다.' },
-  { id: 'hooks', step: '04', title: 'Hooks', body: 'useState · useEffect · useMemo로 상태를 다루고, 같은 작업 안의 변경은 한 번에 모아 그립니다.' },
+  {
+    id: 'phase1',
+    step: 'Phase 1',
+    title: 'Virtual DOM · Diff · Patch',
+    body:
+      'React는 화면을 직접 고치지 않습니다. 화면을 가벼운 객체 트리(Virtual DOM)로 새로 만들고, ' +
+      '이전 트리와 비교(Diff)해 바뀐 부분만 실제 DOM에 반영(Patch)합니다.',
+    link: { href: VISUALIZER, label: 'Diff · Patch 시각화로 확인하기' },
+  },
+  {
+    id: 'phase2',
+    step: 'Phase 2',
+    title: 'Component · State · Hooks',
+    body:
+      'React 컴포넌트는 props를 받아 화면을 돌려주는 함수입니다. State가 바뀌면 다시 호출되고, ' +
+      'Hook(useState · useEffect · useMemo)으로 상태와 부수 효과를 렌더 사이에 기억합니다.',
+    link: { href: COMPONENTS, label: '컴포넌트 인스펙터로 확인하기' },
+  },
 ];
 
 function Features() {
@@ -46,10 +64,10 @@ function Features() {
       'div',
       { class: 'container' },
       h('h2', null, '무엇을 구현했나요'),
-      h('p', { class: 'section-lead' }, '상태가 바뀌면 ① Virtual DOM 생성 → ② Diff → ③ Patch 순서로 화면이 갱신됩니다.'),
+      h('p', { class: 'section-lead' }, 'React의 핵심 동작을 두 단계로 나눠 직접 구현했습니다.'),
       h(
         'div',
-        { class: 'cards' },
+        { class: 'cards cards-2' },
         FEATURES.map((f) =>
           h(
             'article',
@@ -57,6 +75,7 @@ function Features() {
             h('span', { class: 'card-step' }, f.step),
             h('h3', null, f.title),
             h('p', null, f.body),
+            h('a', { class: 'card-link', href: f.link.href }, `${f.link.label} →`),
           ),
         ),
       ),
@@ -140,6 +159,7 @@ let renderCount = 0; // 화면 표시용 기록. 앱 상태가 아니므로 갱�
 let nextId = 4;
 
 function App() {
+  const nav = useSidebar(); // 사이드바 열림 상태. Hook이므로 루트에서 부른다.
   const [todos, setTodos] = useState([
     { id: 1, text: 'Virtual DOM 만들기', done: true },
     { id: 2, text: 'Diff / Patch 구현하기', done: true },
@@ -169,7 +189,7 @@ function App() {
 
   return h(
     PageShell,
-    null,
+    { nav },
     h(Hero, null),
     h(Features, null),
     h(Demo, { todos, filter, renders: renderCount, left, onAdd, onToggle, onRemove, onFilter: setFilter, onClear }),
