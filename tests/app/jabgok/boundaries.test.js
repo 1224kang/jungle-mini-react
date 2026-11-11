@@ -3,8 +3,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const APP = join(ROOT, 'src/app');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const APP = join(ROOT, 'src/app/jabgok');
 const LIB = join(ROOT, 'src/lib');
 
 function list(dir) {
@@ -28,7 +28,7 @@ describe('잡곡 옮기기: 경계', () => {
   it('Hook은 루트 컴포넌트(App.js)에만 있다. 자식 컴포넌트 · 로직 파일에는 use*가 없다', () => {
     const hook = /\buse(State|Effect|Memo)\b/;
     const withHooks = scripts.filter((file) => hook.test(read(file))).map(name);
-    expect(withHooks).toEqual(['src/app/App.js']);
+    expect(withHooks).toEqual(['src/app/jabgok/App.js']);
     expect(scripts.filter((file) => file.includes(`${sep}components${sep}`)).length).toBeGreaterThanOrEqual(7);
   });
 

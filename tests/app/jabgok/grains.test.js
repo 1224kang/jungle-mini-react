@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FLING, GRAIN_TYPES, TABLE_Y } from '../../src/app/config.js';
+import { FLING, GRAIN_TYPES, TABLE_Y } from '../../../src/app/jabgok/config.js';
 import {
   countMisses,
   createGrains,
@@ -12,8 +12,8 @@ import {
   release,
   step,
   summarize,
-} from '../../src/app/logic/grains.js';
-import { RIM_Y, bowlBox, landingOf, touchesWall } from '../../src/app/logic/world.js';
+} from '../../../src/app/jabgok/logic/grains.js';
+import { RIM_Y, bowlBox, landingOf, touchesWall } from '../../../src/app/jabgok/logic/world.js';
 
 const FRAME = 1000 / 60;
 const grain = (over = {}) => ({ id: 'a', type: 'rice', x: 1000, y: 400, vy: 0, where: 'floor', ...over });

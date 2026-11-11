@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { h, diff, mount } from '../../src/lib/index.js';
+import { h, diff, mount } from '../../../src/lib/index.js';
 import {
   EMPTY_REPORT,
   IDLE_FRAME,
@@ -11,7 +11,7 @@ import {
   flatten,
   nextReport,
   toHtml,
-} from '../../src/app/logic/inspect.js';
+} from '../../../src/app/jabgok/logic/inspect.js';
 
 const Item = ({ label }) => h('li', { class: 'item' }, label);
 const List = ({ items }) => h('ul', null, items.map((label) => h(Item, { key: label, label })));

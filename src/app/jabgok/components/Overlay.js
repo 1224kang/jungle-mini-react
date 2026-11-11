@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { GOAL, GRAIN_TYPES, TIME_LIMIT } from '../config.js';
 import { formatTime } from './format.js';
 

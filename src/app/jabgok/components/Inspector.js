@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 
 const line = (label, value) => h('div', { class: 'inspector__row' }, h('dt', null, label), h('dd', null, value));
 

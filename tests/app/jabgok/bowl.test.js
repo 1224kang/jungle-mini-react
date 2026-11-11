@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { BOWL, LABEL, ROT, TABLE_Y } from '../../src/app/config.js';
-import { INITIAL_BOWL, carryInBowl, hitsStub, labelBox, stepBowl, stubBox } from '../../src/app/logic/bowl.js';
-import { onGround, pickGrain, radiusOf, step, stepRot, summarize } from '../../src/app/logic/grains.js';
-import { bowlBox, landingOf, surfaceY, touchesWall } from '../../src/app/logic/world.js';
+import { BOWL, LABEL, ROT, TABLE_Y } from '../../../src/app/jabgok/config.js';
+import { INITIAL_BOWL, carryInBowl, hitsStub, labelBox, stepBowl, stubBox } from '../../../src/app/jabgok/logic/bowl.js';
+import { onGround, pickGrain, radiusOf, step, stepRot, summarize } from '../../../src/app/jabgok/logic/grains.js';
+import { bowlBox, landingOf, surfaceY, touchesWall } from '../../../src/app/jabgok/logic/world.js';
 
 const FRAME = 1000 / 60;
 const grain = (over = {}) => ({ id: 'a', type: 'rice', x: 1000, y: 400, vy: 0, where: 'floor', ...over });

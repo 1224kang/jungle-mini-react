@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { BEST_KEY, GRAIN_TYPES } from '../../src/app/config.js';
-import { countMutations } from '../../src/app/logic/inspect.js';
-import { RIM_Y, bowlBox } from '../../src/app/logic/world.js';
+import { BEST_KEY, GRAIN_TYPES } from '../../../src/app/jabgok/config.js';
+import { countMutations } from '../../../src/app/jabgok/logic/inspect.js';
+import { RIM_Y, bowlBox } from '../../../src/app/jabgok/logic/world.js';
 import {
   cameraOf,
   centerOf,

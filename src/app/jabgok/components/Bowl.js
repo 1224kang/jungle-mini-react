@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { BOWL, LABEL } from '../config.js';
 import { bowlBox } from '../logic/world.js';
 import { translate } from './format.js';

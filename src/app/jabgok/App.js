@@ -1,4 +1,4 @@
-import { h, diff, useState, useEffect, useMemo } from '../lib/index.js';
+import { h, diff, useState, useEffect, useMemo } from '../../lib/index.js';
 import { BEST_KEY, GOAL, TIME_LIMIT } from './config.js';
 import { Board } from './components/Board.js';
 import { Hud } from './components/Hud.js';

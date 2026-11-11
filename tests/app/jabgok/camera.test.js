@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { BOWL_CENTER, CAMERA, VIEW, WORLD } from '../../src/app/config.js';
-import { INITIAL_CAMERA, OVERLAPS, SECTIONS, sectionOf, shiftCamera, toWorld } from '../../src/app/logic/camera.js';
-import { bowlBox } from '../../src/app/logic/world.js';
+import { BOWL_CENTER, CAMERA, VIEW, WORLD } from '../../../src/app/jabgok/config.js';
+import { INITIAL_CAMERA, OVERLAPS, SECTIONS, sectionOf, shiftCamera, toWorld } from '../../../src/app/jabgok/logic/camera.js';
+import { bowlBox } from '../../../src/app/jabgok/logic/world.js';
 
 describe('카메라 구간', () => {
   it('구간은 640px 간격으로 4개, 월드 밖을 보여 주지 않는다', () => {

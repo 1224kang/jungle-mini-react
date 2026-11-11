@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { GRAIN_TYPES } from '../config.js';
 import { DeadZone } from './DeadZone.js';
 import { translate } from './format.js';

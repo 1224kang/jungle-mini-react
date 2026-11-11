@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { TABLE_Y, WORLD } from '../config.js';
 import { OVERLAPS } from '../logic/camera.js';
 import { Bowl } from './Bowl.js';

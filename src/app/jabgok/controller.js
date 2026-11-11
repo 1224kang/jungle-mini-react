@@ -1,4 +1,4 @@
-import { h } from '../lib/index.js';
+import { h } from '../../lib/index.js';
 import { GOAL, LABEL, KEY, MAX_DT, TIME_LIMIT, VIEW } from './config.js';
 import { Board } from './components/Board.js';
 import { INITIAL_BOWL, carryInBowl, hitsStub, stepBowl } from './logic/bowl.js';

@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { DEADZONE_RATIO, GRAIN_TYPES } from '../config.js';
 
 /**

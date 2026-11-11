@@ -1,4 +1,4 @@
-import { h } from '../../lib/index.js';
+import { h } from '../../../lib/index.js';
 import { formatTime, translate } from './format.js';
 
 /** 미니맵: 월드 전체 · 카메라 위치 · 두 그릇. 카메라 표시만 transform으로 움직인다. */

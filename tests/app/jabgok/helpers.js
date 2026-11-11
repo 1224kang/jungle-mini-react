@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
-import { h, mount } from '../../src/lib/index.js';
-import { App } from '../../src/app/App.js';
-import { GRAIN_TYPES } from '../../src/app/config.js';
+import { h, mount } from '../../../src/lib/index.js';
+import { App } from '../../../src/app/jabgok/App.js';
+import { GRAIN_TYPES } from '../../../src/app/jabgok/config.js';
 
 export const FRAME_MS = 16;
 
