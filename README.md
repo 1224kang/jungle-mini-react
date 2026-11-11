@@ -6,8 +6,13 @@ React, Vue 같은 UI 프레임워크 없이 **순수 JavaScript**로 React의 �
 - **런타임 의존성 0개**: Vite·Vitest·jsdom은 개발 도구(`devDependencies`)로만 씁니다.
 - **데모 사이트도 직접 만든 Mini React로 그립니다**: [`src/app`](src/app)은 HTML, 바닐라 JS, `src/lib`만 사용합니다.
 
-<!-- TODO: 데모 사이트 스크린샷 또는 GIF -->
-<!-- ![데모 사이트](docs/images/demo.gif) -->
+## 라이브 데모
+
+Diff · Patch 시각화에서 변경 전후의 Virtual DOM 트리를 비교하고, 컴포넌트 데모에서 상태와 Hook의 변화를 확인할 수 있습니다.
+
+[![할 일 목록에 Patch를 적용하기 전과 후의 Virtual DOM 트리 비교](docs/demo-preview.jpg)](https://1224kang.github.io/jungle-mini-react/)
+
+[라이브 데모 열기](https://1224kang.github.io/jungle-mini-react/)
 
 <br/>
 
