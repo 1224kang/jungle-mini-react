@@ -25,7 +25,7 @@ export const NAV = [
   },
   {
     title: 'Demo',
-    pages: [{ href: PATHS.jabgok, label: '잡곡 옮기기 (게임)' }],
+    pages: [{ href: PATHS.jabgok, label: 'japgok-move-game' }],
   },
 ];
 
