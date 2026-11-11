@@ -6,8 +6,11 @@ React, Vue 같은 UI 프레임워크 없이 **순수 JavaScript**로 React의 �
 - **런타임 의존성 0개**: Vite·Vitest·jsdom은 개발 도구(`devDependencies`)로만 씁니다.
 - **데모 사이트도 직접 만든 Mini React로 그립니다**: [`src/app`](src/app)은 HTML, 바닐라 JS, `src/lib`만 사용합니다.
 
-<!-- TODO: 데모 사이트 스크린샷 또는 GIF -->
-<!-- ![데모 사이트](docs/images/demo.gif) -->
+## 라이브 데모
+
+Diff · Patch 시각화에서 변경 전후의 Virtual DOM 트리를 비교하고, 컴포넌트 데모에서 상태와 Hook의 변화를 확인할 수 있습니다.
+
+[라이브 데모 열기](https://1224kang.github.io/jungle-mini-react/)
 
 <br/>
 
@@ -24,6 +27,10 @@ React, Vue 같은 UI 프레임워크 없이 **순수 JavaScript**로 React의 �
 - [x] key 기반 자식 비교 (React식 `lastPlacedIndex`)
 - [x] `on*` 함수 prop → `addEventListener`, 교체·제거 시 이전 리스너 정리
 
+할 일 목록 예제에서 **Patch 실행**을 누르면 변경 전후 VNode 트리에 텍스트, 속성, 삭제, 생성, 교체가 각각 표시됩니다.
+
+[![할 일 목록에 Patch를 적용하기 전과 후의 Virtual DOM 트리 비교](docs/demo-preview.jpg)](https://1224kang.github.io/jungle-mini-react/src/app/visualizer/?s=todo)
+
 ### Phase 2: 컴포넌트 · State · Hooks
 
 - [x] 함수형 컴포넌트 (`h(Counter, props)`), diff 전에 요소 VNode로 펼치기
@@ -32,6 +39,10 @@ React, Vue 같은 UI 프레임워크 없이 **순수 JavaScript**로 React의 �
 - [x] `useEffect`: DOM 반영 직후 실행, 다시 실행하기 전과 `unmount` 때 정리 함수 호출
 - [x] `useMemo`: 의존성이 같으면 이전 값 재사용
 - [x] Hook 규칙 검사: 루트 밖에서 호출, 렌더마다 Hook 순서가 바뀜, effect로 인한 무한 갱신을 에러로 알림
+
+장바구니에서 상품을 담으면 `app.hooks` 패널에 품목을 저장하는 `useState`, 합계를 캐시하는 `useMemo`, 타이머를 관리하는 `useEffect` 슬롯이 선언 순서대로 표시됩니다.
+
+[![장바구니 데모와 useState, useMemo, useEffect의 Hook 슬롯](docs/demo-hooks.jpg)](https://1224kang.github.io/jungle-mini-react/src/app/components/)
 
 <br/>
 
@@ -75,6 +86,10 @@ VNode에 DOM 참조(`vnode.el`)를 저장하는 React·Vue 방식 대신 이 방
 
 마지막 줄은 lastPlacedIndex의 알려진 약점(최소 이동을 보장하지 않음)이며, 의도된 동작으로 테스트에 고정했습니다.
 
+목록 재정렬 예제에서 key가 있는 사과 항목은 `MOVE` 1건으로 옮겨지고, key가 없는 비교 목록에서는 `TEXT` 3건으로 각 자리의 글자가 바뀝니다. 두 목록 모두 기존 DOM 노드를 재사용합니다.
+
+[![목록 재정렬의 Patch 목록에 MOVE 1건, TEXT 3건, 새 노드 0개가 표시된 화면](docs/demo-key-move.jpg)](https://1224kang.github.io/jungle-mini-react/src/app/visualizer/?s=reorder)
+
 ### 3. 복잡도
 
 - `diff`: 평균 **O(N + P)** (N = 노드 수, P = 속성 수). "같은 레벨끼리만 비교", "type이 다르면 하위는 비교하지 않음" 휴리스틱 덕분입니다.
@@ -89,6 +104,10 @@ VNode에 DOM 참조(`vnode.el`)를 저장하는 React·Vue 방식 대신 이 방
 - **Batching (선택 과제)**: 한 작업 안의 setState를 마이크로태스크 하나로 모아 렌더 1번. 같은 값이면 렌더 0번.
 - **unmount와 effect 정리**: `FunctionComponent.unmount()`가 cleanup을 선언 순서대로 실행합니다.
 - **Hook 규칙 런타임 검사**: 루트 밖 호출, Hook 순서 변경, 렌더 중 setState, effect 무한 갱신을 에러로 알립니다.
+
+장바구니에 두 품목을 담고 **모두 +1**을 누르면 렌더 기록에 `setState` 2회 → 렌더 1회가 표시됩니다. 같은 기록에서 `useEffect`가 이전 타이머를 정리하고 새로 시작하는 것도 확인할 수 있습니다.
+
+[![모두 +1 실행 후 setState 2회가 렌더 1회로 처리되고 타이머가 재시작된 기록](docs/demo-batching.jpg)](https://1224kang.github.io/jungle-mini-react/src/app/components/)
 
 ### 최적화
 | 기법 | 효과 |
