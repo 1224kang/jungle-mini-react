@@ -161,7 +161,7 @@ const Summary = track('Summary', ({ summary, coupon, idle, memoOn, onToggleCoupo
         'span',
         { class: idle >= IDLE_NOTICE_SEC ? 'd-idle warn' : 'd-idle' },
         `⏱ 장바구니 변화 없이 ${idle}초`,
-        idle >= IDLE_NOTICE_SEC && ` · ${IDLE_NOTICE_SEC}초째 그대로예요`,
+        idle >= IDLE_NOTICE_SEC && ` · 자리 비움 (${IDLE_NOTICE_SEC}초 넘게 그대로)`,
       ),
     ),
   ),
