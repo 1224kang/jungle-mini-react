@@ -93,6 +93,13 @@
 .d-coupon input { accent-color: var(--accent); }
 .d-total { display: inline-flex; align-items: baseline; gap: .4rem; }
 .d-total s { color: var(--muted); font-size: .85rem; }
+.d-ms { color: var(--muted); font-size: .75rem; margin-left: auto; }
+.d-summary { flex-wrap: wrap; }
+.d-extra { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; font-size: .85rem; }
+.d-memo { display: inline-flex; align-items: center; gap: .25rem; }
+.d-idle { color: var(--muted); font-variant-numeric: tabular-nums; }
+.d-idle.warn { color: var(--danger, #c0392b); font-weight: 600; }
+.fact.slow { color: var(--danger, #c0392b); font-weight: 600; }
 .d-total strong { font-size: 1.15rem; }
 
 @media (max-width: 900px) {

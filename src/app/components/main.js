@@ -62,7 +62,8 @@ function DemoPanel({ onRestart }) {
       'p',
       { class: 'tip' },
       h('strong', null, '해 볼 것 '),
-      '“모두 +1”은 setState를 품목 수만큼 부르지만 렌더는 1번입니다. “간단히 보기”는 렌더는 되지만 합계(useMemo)는 다시 계산하지 않습니다.',
+      '“모두 +1”은 setState를 품목 수만큼 부르지만 렌더는 1번입니다. “간단히 보기”는 렌더는 되지만 합계(useMemo)는 다시 계산하지 않습니다. ',
+      '“useMemo 사용”을 끄고 다시 눌러 보세요. 같은 동작이 300ms씩 걸립니다. 상품을 담으면 아래 타이머가 0초로 돌아가고(cleanup 후 재시작), 보기 전환에서는 이어집니다.',
     ),
   );
 }
@@ -182,7 +183,12 @@ function RenderLog({ log }) {
             h(
               'li',
               { key: String(entry.no), class: 'log-entry' },
-              h('div', { class: 'log-head' }, h('span', { class: 'log-no' }, `#${entry.no}`), h('strong', null, entry.action)),
+              h(
+                'div',
+                { class: 'log-head' },
+                h('span', { class: 'log-no' }, `#${entry.no}`),
+                h('strong', null, entry.ticks > 1 ? `${entry.action} ×${entry.ticks}` : entry.action),
+              ),
               h(
                 'div',
                 { class: 'log-facts' },
@@ -193,7 +199,12 @@ function RenderLog({ log }) {
                 ),
                 h('span', { class: 'fact' }, `컴포넌트 호출 ${entry.componentCalls}회`),
                 h('span', { class: 'fact' }, `DOM 변경 ${entry.domChanges}건`),
-                h('span', { class: entry.memoRan ? 'fact memo' : 'fact skip' }, entry.memoRan ? 'useMemo 다시 계산' : 'useMemo 건너뜀'),
+                h('span', { class: entry.renderMs >= 100 ? 'fact slow' : 'fact' }, `렌더 ${entry.renderMs}ms`),
+                h(
+                  'span',
+                  { class: entry.memoRan ? 'fact memo' : 'fact skip' },
+                  entry.memoRan ? `useMemo 다시 계산 · ${entry.memoMs}ms` : 'useMemo 건너뜀',
+                ),
               ),
               entry.effects.length > 0 &&
                 h(
@@ -224,7 +235,23 @@ function App() {
     demo = mountDemo(document.getElementById('demo-root'), (report) => {
       no += 1;
       const componentCalls = Object.values(report.calls).reduce((a, b) => a + b, 0);
-      setLog((list) => [{ ...report, no, componentCalls }, ...list].slice(0, MAX_LOG));
+      setLog((list) => {
+        const prev = list[0];
+        // 1초마다 오는 타이머 tick은 한 줄로 합친다. 통계(sum*)는 합쳐도 누적한다.
+        if (report.kind === 'tick' && prev?.kind === 'tick') {
+          const merged = {
+            ...report,
+            no,
+            componentCalls,
+            ticks: prev.ticks + 1,
+            sumSetCalls: prev.sumSetCalls + report.setCalls,
+            sumDomChanges: prev.sumDomChanges + report.domChanges,
+          };
+          return [merged, ...list.slice(1)];
+        }
+        const entry = { ...report, no, componentCalls, ticks: 1, sumSetCalls: report.setCalls, sumDomChanges: report.domChanges };
+        return [entry, ...list].slice(0, MAX_LOG);
+      });
     });
     return () => demo.unmount();
   }, [run]);
@@ -233,9 +260,9 @@ function App() {
   const totals = useMemo(
     () => ({
       renders: latest ? latest.no : 0,
-      setCalls: log.reduce((s, e) => s + e.setCalls, 0),
+      setCalls: log.reduce((s, e) => s + e.sumSetCalls, 0),
       memoRuns: latest ? latest.memoRuns : 0,
-      domChanges: log.reduce((s, e) => s + e.domChanges, 0),
+      domChanges: log.reduce((s, e) => s + e.sumDomChanges, 0),
     }),
     [log],
   );
