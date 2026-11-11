@@ -9,6 +9,7 @@ export const BASE = import.meta.env.BASE_URL;
 export const PATHS = {
   visualizer: BASE + 'src/app/visualizer/',
   components: BASE + 'src/app/components/',
+  jabgok: BASE + 'src/app/jabgok/',
 };
 
 export const HOME = { href: BASE, label: 'Mini React' };
@@ -21,6 +22,10 @@ export const NAV = [
       { href: PATHS.visualizer, label: 'Virtual DOM · Diff · Patch' },
       { href: PATHS.components, label: 'Component · State · Hooks' },
     ],
+  },
+  {
+    title: 'Demo',
+    pages: [{ href: PATHS.jabgok, label: 'japgok-move-game' }],
   },
 ];
 

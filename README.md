@@ -191,6 +191,7 @@ prev = next;
 | 홈 | http://localhost:5173/ | Phase 1·2 소개와 라이브 데모 |
 | Diff · Patch 시각화 | http://localhost:5173/src/app/visualizer/ | 화면을 직접 고치고 Patch를 실행해 Patch 목록, 바뀐 DOM 노드, 이전·이후 VNode 트리, 실행 기록을 확인 |
 | 컴포넌트 · Hooks 인스펙터 | http://localhost:5173/src/app/components/ | 장바구니 데모로 컴포넌트 트리, Hook 슬롯(`app.hooks`), 렌더 기록을 관찰 |
+| 잡곡 옮기기 (게임) | http://localhost:5173/src/app/jabgok/ | Mini React만으로 매 프레임 갱신되는 게임. 관찰 패널에서 프레임당 patch 수와 실제 DOM 변경 수를 확인 |
 | Patch 검증 페이지 (개발용) | http://localhost:5173/src/playground/verify/ | HTML을 입력해 diff/patch 결과가 새 VNode와 일치하는지 검사 |
 
 <br/>
