@@ -7,6 +7,7 @@ const PAGES = [
   'src/app/index.html',
   'src/app/visualizer/index.html',
   'src/app/components/index.html',
+  'src/app/jabgok/index.html',
   'src/playground/index.html',
   'src/playground/verify/index.html',
 ];

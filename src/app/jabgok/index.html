@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잡곡 옮기기 · Mini React</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page__head">
+        <h1>잡곡 옮기기</h1>
+        <p>
+          왼쪽 그릇의 잡곡을 한 알씩 집어 오른쪽 그릇으로 옮기세요. 직접 만든 Mini React만으로 초당 60번 갱신됩니다.
+        </p>
+      </header>
+
+      <div id="app"></div>
+
+      <footer class="page__help">
+        <p>
+          <kbd>마우스 드래그</kbd> 잡곡 잡기 · 끌기
+          <kbd>A</kbd><kbd>D</kbd> 화면을 왼쪽 · 오른쪽 구간으로 (잡곡은 밝은 띠에 내려놓고 옮긴 뒤 다시 집기) · 테이블에 5초 닿으면 썩음
+          <kbd>Space</kbd> 방해: 화면을 흔들어 잡곡을 아무 데로나 날려 보냄
+        </p>
+        <ul class="legend">
+          <li><span class="swatch grain--bean" style="width: 14px; height: 14px"></span>콩 1점</li>
+          <li><span class="swatch grain--redbean" style="width: 10px; height: 10px"></span>팥 2점</li>
+          <li><span class="swatch grain--rice" style="width: 8px; height: 8px"></span>쌀 2점</li>
+          <li><span class="swatch grain--millet" style="width: 5px; height: 5px"></span>조 3점</li>
+        </ul>
+        <p><a href="../../../">← Mini React 홈으로</a></p>
+      </footer>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
