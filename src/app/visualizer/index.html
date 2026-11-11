@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="HTML을 고치면 Mini React가 diff로 바뀐 부분을 찾고 patch로 실제 DOM에 반영하는 과정을 보여 주는 시각화." />
+    <title>Diff 시각화 · Mini React</title>
+    <link rel="stylesheet" href="/src/app/shared/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/app/shared/styles/base.css" />
+    <link rel="stylesheet" href="/src/app/shared/styles/panels.css" />
+    <link rel="stylesheet" href="/src/app/visualizer/visualizer.css" />
+  </head>
+  <body>
+    <!-- 페이지 UI는 Mini React가 그린다. 시각화 무대(#vz-stage) 안은 engine.js가 patch로 갱신한다. -->
+    <div id="app"></div>
+    <script type="module" src="/src/app/visualizer/main.js"></script>
+  </body>
+</html>

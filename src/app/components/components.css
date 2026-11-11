@@ -1,0 +1,115 @@
+/* 컴포넌트 · State · Hooks 페이지 전용 스타일. 공통은 shared/styles. */
+
+.btn-sm { padding: .35rem .8rem; font-size: .85rem; border-radius: 8px; }
+.tip { margin: 0; color: var(--muted); font-size: .88rem; }
+.tip strong { color: var(--text); }
+
+@keyframes pulse {
+  from { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  to { background: transparent; }
+}
+
+/* 규칙 */
+.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
+.rule { display: grid; grid-template-columns: auto 1fr; column-gap: .6rem; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.rule-no { grid-row: span 2; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .8rem; font-weight: 700; }
+.rule p { margin: .2rem 0 0; color: var(--muted); font-size: .88rem; }
+
+/* 배치 */
+.cp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: start; }
+.cp-side { display: grid; gap: 1rem; min-width: 0; }
+
+/* 누적 수치 */
+.totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: 0; }
+.stat { padding: .7rem .8rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+.stat dt { color: var(--muted); font-size: .78rem; }
+.stat dd { margin: 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: .75rem; }
+
+/* Hook 슬롯 */
+.slots { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.slot {
+  display: grid; grid-template-columns: 1.5rem auto minmax(0, 9rem) minmax(0, 1fr); align-items: center; gap: .6rem;
+  padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px;
+}
+.slot-no { color: var(--muted); font: .8rem var(--mono); text-align: right; }
+.slot-name { display: grid; line-height: 1.3; }
+.slot-name small { color: var(--muted); font-size: .75rem; }
+.slot-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: .2rem .4rem; border-radius: 6px; font: .8rem var(--mono); color: var(--muted); }
+.slot-value.changed { color: var(--text); animation: pulse 1.4s ease-out; }
+
+/* 컴포넌트 트리 */
+.tree, .tree-children { margin: 0; padding: 0; list-style: none; }
+.tree-children { margin-left: .9rem; padding-left: .9rem; border-left: 1px dashed var(--border); }
+.tree-node { padding-top: .4rem; }
+.tree-line { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.tree-name { font: 600 .9rem var(--mono); color: var(--accent); }
+.tree-props { color: var(--muted); font: .78rem var(--mono); }
+.tree-role { color: var(--muted); font-size: .8rem; }
+.tree-count { margin-left: auto; padding: .05rem .5rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: .75rem; white-space: nowrap; }
+.tree-count.hit { color: var(--text); animation: pulse 1.4s ease-out; }
+.tree-node.idle > .tree-line { opacity: .45; }
+
+/* 렌더 기록 */
+.log { display: grid; gap: .5rem; max-height: 560px; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.log-entry { padding: .7rem .8rem; border: 1px solid var(--border); border-radius: 10px; }
+.log-entry:first-child { border-color: var(--accent); }
+.log-head { display: flex; align-items: baseline; gap: .5rem; }
+.log-no { color: var(--muted); font: .8rem var(--mono); }
+.log-facts { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; }
+.fact { padding: .1rem .5rem; border-radius: 6px; background: var(--bg-alt); color: var(--muted); font-size: .78rem; }
+.fact.batch { color: var(--patch-move); background: color-mix(in srgb, var(--patch-move) 14%, transparent); font-weight: 600; }
+.fact.memo { color: var(--patch-props); background: color-mix(in srgb, var(--patch-props) 14%, transparent); }
+.fact.skip { color: var(--patch-create); background: color-mix(in srgb, var(--patch-create) 14%, transparent); }
+.log-effects { margin: .45rem 0 0; padding-left: 1rem; color: var(--muted); font-size: .8rem; }
+.log-effects code { font: .75rem var(--mono); color: var(--patch-move); }
+
+/* 데모 앱 (별도 루트) */
+.demo-stage { padding: 1rem; border-radius: 10px; background: var(--bg-alt); border: 1px dashed var(--border); }
+.demo-app { display: grid; gap: .9rem; }
+.demo-app button { font: inherit; color: var(--text); cursor: pointer; }
+.d-head { display: flex; align-items: center; gap: .6rem; }
+.d-count { padding: .05rem .55rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .8rem; font-weight: 600; }
+.d-ghost { margin-left: auto; padding: .3rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-size: .85rem !important; }
+.d-ghost:hover:not(:disabled) { background: var(--bg-alt); }
+.d-ghost:disabled { opacity: .5; cursor: default; }
+.d-products { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.d-product { display: grid; justify-items: center; gap: .1rem; padding: .6rem .3rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+.d-product:hover { border-color: var(--accent); }
+.d-product:active { transform: scale(.97); }
+.d-icon { font-size: 1.5rem; line-height: 1.2; }
+.d-product small { color: var(--muted); font-size: .75rem; }
+.d-rows { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.d-row { display: flex; align-items: center; gap: .6rem; padding: .45rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+.d-name { font-weight: 600; }
+.d-unit { color: var(--muted); font-size: .8rem; }
+.d-qty { display: inline-flex; align-items: center; gap: .35rem; margin-left: auto; }
+.d-qty button { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-alt); }
+.d-qty button:hover { border-color: var(--accent); }
+.d-qty output { min-width: 1.5rem; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+.d-empty { margin: 0; padding: 1rem; border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); text-align: center; font-size: .9rem; }
+.d-summary { display: flex; align-items: center; gap: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+.d-coupon { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; cursor: pointer; }
+.d-coupon input { accent-color: var(--accent); }
+.d-total { display: inline-flex; align-items: baseline; gap: .4rem; }
+.d-total s { color: var(--muted); font-size: .85rem; }
+.d-ms { color: var(--muted); font-size: .75rem; margin-left: auto; }
+.d-summary { flex-wrap: wrap; }
+.d-extra { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; font-size: .85rem; }
+.d-memo { display: inline-flex; align-items: center; gap: .25rem; }
+.d-idle { color: var(--muted); font-variant-numeric: tabular-nums; }
+.d-idle.warn { color: var(--danger, #c0392b); font-weight: 600; }
+.fact.slow { color: var(--danger, #c0392b); font-weight: 600; }
+.d-total strong { font-size: 1.15rem; }
+
+@media (max-width: 900px) {
+  .rules { grid-template-columns: 1fr; }
+  .cp-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .totals { grid-template-columns: repeat(2, 1fr); }
+  .d-products { grid-template-columns: repeat(2, 1fr); }
+  .slot { grid-template-columns: 1.25rem auto 1fr; }
+  .slot-value { grid-column: 2 / -1; }
+  .d-summary { flex-wrap: wrap; }
+}

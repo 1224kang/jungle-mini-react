@@ -8,6 +8,8 @@
   "scripts": {
     "test": "vitest",
     "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
     "test:run": "vitest run"
   },
   "repository": {
