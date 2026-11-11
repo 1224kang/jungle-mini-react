@@ -3,6 +3,7 @@
 // 규칙(README · docs/contracts.md 6장): Hook은 루트(App)에서만 쓰고, 자식은 props만 받는 순수 함수다.
 import { h, mount, useState, useEffect, useMemo } from '../lib/index.js';
 import { PageShell } from './shared/layout.js';
+import { PATHS } from './shared/routes.js';
 import { useSidebar } from './shared/useSidebar.js';
 
 /* ---------- 자식 컴포넌트 (상태 없음) ---------- */
@@ -32,8 +33,8 @@ function Hero() {
   );
 }
 
-const VISUALIZER = '/src/app/visualizer/';
-const COMPONENTS = '/src/app/components/';
+const VISUALIZER = PATHS.visualizer;
+const COMPONENTS = PATHS.components;
 
 const FEATURES = [
   {
