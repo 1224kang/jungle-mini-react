@@ -31,12 +31,16 @@
 
 body { line-height: 1.5; }
 
-.page { width: max-content; max-width: 100%; margin: 0 auto; padding: 20px 16px 32px; }
+.game-page {
+  container-type: inline-size;
+  max-width: 1288px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+}
 .page__head h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
 .page__head p { margin: 2px 0 14px; color: var(--muted); font-size: 14px; }
 .page__help { margin-top: 12px; color: var(--muted); font-size: 13px; }
 .page__help p { margin: 4px 0; }
-.page__help a { color: var(--accent); }
 
 kbd {
   display: inline-block;
@@ -52,11 +56,11 @@ kbd {
 kbd:first-child { margin-left: 0; }
 kbd + kbd { margin-left: 0; }
 
-.legend { display: flex; gap: 16px; margin: 6px 0; padding: 0; list-style: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0; padding: 0; list-style: none; }
 .legend li { display: flex; align-items: center; gap: 6px; }
 
 /* ── 배치: 위 HUD, 가운데 보드, 오른쪽 관찰 패널 ── */
-.grain-app { display: grid; grid-template-columns: 960px 280px; gap: 16px; align-items: start; }
+.grain-app { display: grid; grid-template-columns: 960px 280px; gap: 16px; align-items: start; width: max-content; margin-inline: auto; }
 .game { display: flex; flex-direction: column; gap: 8px; width: 960px; }
 
 /* ── HUD ── */
@@ -336,14 +340,15 @@ kbd + kbd { margin-left: 0; }
 }
 .naive-view > .board { transform: scale(0.2604); transform-origin: 0 0; border: 0; border-radius: 0; pointer-events: none; }
 
-/* ── 좁은 화면: 패널을 아래로 내리고, 보드는 논리 크기(960×540)를 유지한 채 통째로 줄인다 ── */
-@media (max-width: 1300px) {
+/* 사이드바를 뺀 본문 너비를 기준으로 보드 전체를 줄인다. 논리 좌표는 960×540을 유지한다. */
+@container (width < 1256px) {
   .grain-app { grid-template-columns: 960px; }
 }
-@media (max-width: 1000px) { .grain-app { zoom: 0.8; } }
-@media (max-width: 810px) { .grain-app { zoom: 0.62; } }
-@media (max-width: 640px) { .grain-app { zoom: 0.48; } }
-@media (max-width: 500px) { .grain-app { zoom: 0.36; } }
+@container (width < 960px) { .grain-app { zoom: 0.8; } }
+@container (width < 768px) { .grain-app { zoom: 0.62; } }
+@container (width < 596px) { .grain-app { zoom: 0.48; } }
+@container (width < 461px) { .grain-app { zoom: 0.36; } }
+@container (width < 346px) { .grain-app { zoom: 0.3; } }
 
 @media (prefers-reduced-motion: reduce) {
   .grain.is-falling { opacity: 1; }
